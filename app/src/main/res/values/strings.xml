@@ -1,3 +1,7 @@
 <resources>
     <string name="app_name">Comedoria da Tia</string>
+
+    <!-- Valores da API Key do Supabase -->
+    <string name="supabase_url">https://qiwlkpkgkcopdvuqkcmx.supabase.co</string>
+    <string name="supabase_anon_key">eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFpd2xrcGtna2NvcGR2dXFrY214Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTU3MDMxMzQsImV4cCI6MjA3MTI3OTEzNH0.mt3rdB44LegF8IID4Ked_He_vaEKPToZnQc6GAIS2F0</string>
 </resources>

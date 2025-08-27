@@ -1,9 +1,17 @@
-<resources xmlns:tools="http://schemas.android.com/tools">
-    <!-- Base application theme. -->
-    <style name="Base.Theme.AplicativoComedoriaDaTia" parent="Theme.Material3.DayNight.NoActionBar">
-        <!-- Customize your light theme here. -->
-        <!-- <item name="colorPrimary">@color/my_light_primary</item> -->
+<resources>
+
+    <!-- Tema base -->
+    <style name="Base.Theme.AplicativoComedoriaDaTia" parent="Theme.Material3.DayNight.NoActionBar" />
+
+    <!-- Tema principal -->
+    <style name="Theme.AplicativoComedoriaDaTia" parent="Base.Theme.AplicativoComedoriaDaTia" />
+
+    <!-- Tema da Splash (core-splashscreen) -->
+    <style name="Theme.AplicativoComedoriaDaTia.Splash" parent="Theme.SplashScreen">
+        <item name="windowSplashScreenBackground">@drawable/background</item>
+        <item name="windowSplashScreenAnimatedIcon">@mipmap/ic_launcher_logo_circulo</item>
+        <item name="postSplashScreenTheme">@style/Theme.AplicativoComedoriaDaTia</item>
+
     </style>
 
-    <style name="Theme.AplicativoComedoriaDaTia" parent="Base.Theme.AplicativoComedoriaDaTia" />
 </resources>
