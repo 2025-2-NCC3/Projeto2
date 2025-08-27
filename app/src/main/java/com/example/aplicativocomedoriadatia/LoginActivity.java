@@ -48,12 +48,16 @@ public class LoginActivity extends AppCompatActivity {
         session = new SessionManager(this);
 
         btnLogin.setOnClickListener(v -> tryLogin());
-        findViewById(R.id.tvGoSignup).setOnClickListener(v ->
-                Toast.makeText(this, "Ir para cadastro…", Toast.LENGTH_SHORT).show()
-        );
-        findViewById(R.id.tvForgot).setOnClickListener(v ->
-                Toast.makeText(this, "Fluxo de recuperação em breve.", Toast.LENGTH_SHORT).show()
-        );
+        findViewById(R.id.tvGoSignup).setOnClickListener(v -> {
+            Intent intent = new Intent(LoginActivity.this, SignupActivity.class);
+            startActivity(intent);
+        });
+
+        findViewById(R.id.tvForgot).setOnClickListener(v -> {
+            Intent intent = new Intent(LoginActivity.this, ForgotPassword.class);
+            startActivity(intent);
+        });
+
     }
 
     private void tryLogin() {

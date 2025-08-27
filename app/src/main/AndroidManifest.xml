@@ -40,6 +40,12 @@
             android:name=".MainActivity"
             android:exported="true"
             android:theme="@style/Theme.AplicativoComedoriaDaTia" />
+
+        <activity
+            android:name=".ForgotPassword"
+            android:exported="true"
+            android:theme="@style/Theme.AplicativoComedoriaDaTia"/>
+
     </application>
 
 
