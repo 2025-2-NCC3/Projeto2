@@ -74,19 +74,26 @@ public class SignupActivity extends AppCompatActivity {
             try {
                 SupabaseAuthService.AuthResponse resp = supabase.signUpWithEmail(email, pass, name);
 
-                // Se o projeto exigir confirmação de e-mail, normalmente não vem access_token aqui.
-                if (resp != null && resp.user != null) {
-                    runOnUiThread(() -> {
-                        Toast.makeText(this, "Cadastro criado! Verifique seu e-mail para confirmar.", Toast.LENGTH_LONG).show();
-                        // Vá para o login:
-                        startActivity(new Intent(this, LoginActivity.class));
-                        finish();
-                    });
-                } else {
-                    failUi("Não foi possível criar sua conta.");
-                }
+                // Se chegou aqui sem lançar IOException, o cadastro foi aceito pelo Supabase.
+                // Em projetos com confirmação por email, pode não haver 'user' nem tokens ainda.
+                runOnUiThread(() -> {
+                    Toast.makeText(this,
+                            "Cadastro criado! Verifique seu e-mail para confirmar.",
+                            Toast.LENGTH_LONG).show();
+                    startActivity(new Intent(this, LoginActivity.class));
+                    finish();
+                });
+
             } catch (IOException e) {
-                failUi("Falha de rede: " + e.getMessage());
+                // Mensagens mais amigáveis conforme erro comum do Supabase
+                String msg = (e.getMessage() != null) ? e.getMessage() : "Falha de rede.";
+                if (msg.contains("User already registered") || msg.contains("already registered")) {
+                    failUi("Este e-mail já está cadastrado. Faça login.");
+                } else if (msg.contains("rate limit") || msg.contains("Too Many Requests")) {
+                    failUi("Muitas tentativas. Tente novamente em instantes.");
+                } else {
+                    failUi("Não foi possível criar sua conta: " + msg);
+                }
             } catch (Exception e) {
                 failUi("Erro: " + e.getMessage());
             } finally {
