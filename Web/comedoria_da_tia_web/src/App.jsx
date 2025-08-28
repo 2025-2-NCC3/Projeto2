@@ -1,6 +1,5 @@
 import { Suspense } from 'react';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
-import './App.css';
 
 // Telas
 import Login from './pages/Login/Login';
