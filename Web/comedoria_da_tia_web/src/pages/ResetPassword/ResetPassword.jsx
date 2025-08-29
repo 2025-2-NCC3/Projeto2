@@ -16,7 +16,7 @@ const ResetPassword = () => {
       toast.error("As senhas não coincidem ❌");
       return;
     }
-
+                  
     toast.success("Senha alterada com sucesso ✅");
   }
 
