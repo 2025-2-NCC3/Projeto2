@@ -1,3 +1,4 @@
+// eslint-disable-next-line no-unused-vars
 import {motion} from "framer-motion"
 import Input from "../../components/Input"
 import { Lock, ChefHat } from "lucide-react"

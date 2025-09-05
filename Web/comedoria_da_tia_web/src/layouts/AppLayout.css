@@ -1,0 +1,10 @@
+.app-shell{
+  display: grid;
+  grid-template-columns: auto 1fr;
+  min-height: 100dvh;
+  background: transparent;
+}
+.app-main{
+  min-height: 100dvh;
+  overflow: auto;
+}

@@ -1,0 +1,81 @@
+:root{
+  --bg:#0f172a; --card:rgba(30,41,59,.6); --border:rgba(255,255,255,.08);
+  --text:#e5e7eb; --muted:#94a3b8; --primary:#10b981; --primary2:#059669;
+}
+
+.plist-page{min-height:100vh;padding:24px;background:linear-gradient(135deg,#0b1220,#0f172a 35%,#065f46 100%);color:var(--text);}
+.plist-topbar{max-width:1100px;margin:0 auto 12px;display:flex;justify-content:space-between;align-items:center;gap:12px;}
+.plist-title{display:flex;align-items:center;gap:10px;}
+.plist-title h1{font:700 22px/1.2 ui-sans-serif,system-ui;margin:0}
+.plist-actions{display:flex;gap:10px;align-items:center;}
+
+.btn-primary,
+.btn-outline {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 14px;      /* 👈 mesmo padding */
+  border-radius: 10px;
+  font-size: 14px;         /* 👈 garante mesma altura da fonte */
+  line-height: 1.2;
+  cursor: pointer;
+}
+
+.btn-primary {
+  background-image: linear-gradient(90deg,var(--primary),var(--primary2));
+  color: #fff;
+  border: 0;
+  box-shadow: 0 10px 24px rgba(16,185,129,.35);
+  text-decoration: none;
+}
+
+.btn-outline {
+  background: transparent;
+  border: 1px solid var(--border);
+  color: var(--text);
+}
+
+.btn-link{display:inline-flex;align-items:center;gap:6px;color:#a7f3d0;background:transparent;border:0;cursor:pointer}
+
+.spin{animation:spin 1s linear infinite}@keyframes spin{to{transform:rotate(360deg)}}
+
+.plist-toolbar{max-width:1100px;margin:0 auto 12px;display:flex;justify-content:space-between;gap:10px}
+.input-search{flex:1;display:flex;align-items:center;gap:8px;padding:10px 12px;border:1px solid var(--border);border-radius:10px;background:rgba(255,255,255,.06)}
+.input-search input{flex:1;background:transparent;border:0;outline:none;color:var(--text)}
+
+.plist-loading,.plist-empty{max-width:1100px;margin:32px auto;text-align:center}
+.plist-empty .btn-primary{margin-top:10px}
+
+.plist-grid{max-width:1100px;margin:0 auto;display:grid;grid-template-columns:repeat(2,1fr);gap:14px}
+@media (max-width: 920px){.plist-grid{grid-template-columns:1fr}}
+
+.plist-card{display:grid;grid-template-columns:140px 1fr auto;gap:12px;background:var(--card);border:1px solid var(--border);border-radius:16px;padding:12px;backdrop-filter:blur(10px)}
+.plist-card.is-off{opacity:.7}
+.plist-thumb{width:140px;height:110px;border-radius:12px;overflow:hidden;background:rgba(255,255,255,.05);display:grid;place-items:center}
+.plist-thumb img{width:100%;height:100%;object-fit:cover}
+.thumb-ph{color:var(--muted);font-size:12px}
+
+.plist-info{display:flex;flex-direction:column;gap:6px}
+.plist-name{font-weight:700}
+.plist-meta{display:flex;gap:8px;flex-wrap:wrap}
+.pill{background:rgba(255,255,255,.08);border:1px solid var(--border);border-radius:999px;padding:4px 8px;font-size:12px;color:#d1fae5}
+
+.plist-kpis{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-top:4px}
+.kpi{background:rgba(255,255,255,.04);border:1px solid var(--border);border-radius:10px;padding:8px}
+.kpi-label{font-size:12px;color:var(--muted)}
+.kpi-value{display:flex;align-items:center;gap:8px;font-weight:700}
+
+.btn-qty{display:inline-flex;align-items:center;justify-content:center;border:1px solid var(--border);background:rgba(255,255,255,.06);border-radius:8px;width:28px;height:28px;cursor:pointer}
+.qty{min-width:28px;text-align:center}
+
+.plist-ops{display:flex;flex-direction:column;gap:6px;align-items:flex-end}
+
+.modal-backdrop{position:fixed;inset:0;background:rgba(0,0,0,.45);display:grid;place-items:center;z-index:50}
+.modal-card{width:min(520px,92vw);background:#0b1020;border:1px solid var(--border);border-radius:16px;padding:16px;color:var(--text)}
+.modal-head{display:flex;align-items:center;gap:8px;margin-bottom:8px}
+.modal-head h3{margin:0}
+.modal-sub{color:var(--muted);margin:6px 0 12px}
+.modal-form{display:grid;gap:10px}
+.modal-form label{display:grid;gap:6px}
+.modal-form input{border:1px solid var(--border);background:rgba(255,255,255,.06);color:var(--text);border-radius:10px;padding:10px 12px;outline:none}
+.modal-actions{display:flex;justify-content:flex-end;gap:10px;margin-top:6px}
