@@ -46,6 +46,11 @@
             android:exported="true"
             android:theme="@style/Theme.AplicativoComedoriaDaTia"/>
 
+        <activity
+            android:name=".ComedoriaMain"
+            android:exported="true"
+            android:theme="@style/Theme.AplicativoComedoriaDaTia"/>
+
     </application>
 
 
