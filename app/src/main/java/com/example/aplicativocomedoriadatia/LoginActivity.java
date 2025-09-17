@@ -86,7 +86,7 @@ public class LoginActivity extends AppCompatActivity {
                     session.save(resp.accessToken, resp.refreshToken, email);
                     runOnUiThread(() -> {
                         Toast.makeText(this, "Login realizado!", Toast.LENGTH_SHORT).show();
-                        startActivity(new Intent(this, MainActivity.class));
+                        startActivity(new Intent(this, HomeActivity.class));
                         finish(); // fecha a tela de login
                     });
                 } else {

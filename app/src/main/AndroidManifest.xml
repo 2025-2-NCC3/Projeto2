@@ -51,6 +51,10 @@
             android:exported="true"
             android:theme="@style/Theme.AplicativoComedoriaDaTia"/>
 
+        <activity android:name=".HomeActivity"
+            android:exported="true"
+            android:theme="@style/Theme.AplicativoComedoriaDaTia"/>
+
     </application>
 
 
