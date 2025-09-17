@@ -18,11 +18,11 @@
 
 ## 📚 Professores Orientadores  
 
-- Dr. Victor Von Doom  
-- Me. Saitama  
-- Dr. Strange  
-- Me. Yoda  
-- Dr. Gero  
+- <a href="https://www.linkedin.com/in/marco-aurelio-lima-barbosa/" target="_blank" rel="noopener noreferrer"> Marco Aurélio Lima Barbosa</a> 
+- <a href="https://www.linkedin.com/in/rodrigo-da-rosa-phd/" target="_blank" rel="noopener noreferrer"> Rodrigo Rosa </a> 
+- <a href="https://www.linkedin.com/in/katia-bossi/" target="_blank" rel="noopener noreferrer"> Kátia Bossi </a>
+- <a href="https://www.linkedin.com/in/victorbarq/" target="_blank" rel="noopener noreferrer"> Victor Bruno Alexander Rosetti de Quiroz </a>  
+
 
 ---
 
