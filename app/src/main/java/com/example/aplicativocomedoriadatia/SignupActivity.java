@@ -5,11 +5,11 @@ import android.os.Bundle;
 import android.text.TextUtils;
 import android.util.Patterns;
 import android.view.View;
-import android.widget.Toast;
 
 import androidx.activity.EdgeToEdge;
 import androidx.appcompat.app.AppCompatActivity;
 
+import com.example.aplicativocomedoriadatia.ui.StatusBanner;
 import com.google.android.material.button.MaterialButton;
 import com.google.android.material.textfield.TextInputEditText;
 import com.google.android.material.textfield.TextInputLayout;
@@ -74,25 +74,21 @@ public class SignupActivity extends AppCompatActivity {
             try {
                 SupabaseAuthService.AuthResponse resp = supabase.signUpWithEmail(email, pass, name);
 
-                // Se chegou aqui sem lançar IOException, o cadastro foi aceito pelo Supabase.
-                // Em projetos com confirmação por email, pode não haver 'user' nem tokens ainda.
                 runOnUiThread(() -> {
-                    Toast.makeText(this,
-                            "Cadastro criado! Verifique seu e-mail para confirmar.",
-                            Toast.LENGTH_LONG).show();
+                    StatusBanner.show(this, StatusBanner.State.SUCCESS,
+                            "Cadastro criado", "Verifique seu e-mail para confirmar.", 2800);
                     startActivity(new Intent(this, LoginActivity.class));
                     finish();
                 });
 
             } catch (IOException e) {
-                // Mensagens mais amigáveis conforme erro comum do Supabase
-                String msg = (e.getMessage() != null) ? e.getMessage() : "Falha de rede.";
-                if (msg.contains("User already registered") || msg.contains("already registered")) {
+                String raw = (e.getMessage() != null) ? e.getMessage() : "Falha de rede.";
+                if (raw.contains("User already registered") || raw.contains("already registered")) {
                     failUi("Este e-mail já está cadastrado. Faça login.");
-                } else if (msg.contains("rate limit") || msg.contains("Too Many Requests")) {
+                } else if (raw.contains("rate limit") || raw.contains("Too Many Requests")) {
                     failUi("Muitas tentativas. Tente novamente em instantes.");
                 } else {
-                    failUi("Não foi possível criar sua conta: " + msg);
+                    failUi("Não foi possível criar sua conta: " + raw);
                 }
             } catch (Exception e) {
                 failUi("Erro: " + e.getMessage());
@@ -123,7 +119,9 @@ public class SignupActivity extends AppCompatActivity {
     }
 
     private void failUi(String msg) {
-        runOnUiThread(() -> Toast.makeText(this, msg, Toast.LENGTH_LONG).show());
+        runOnUiThread(() -> StatusBanner.show(
+                this, StatusBanner.State.ERROR, "Não foi possível cadastrar", msg, 4000
+        ));
     }
 
     @Override

@@ -5,8 +5,10 @@ import android.os.Bundle;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.TextView;
-import android.widget.Toast;
+
 import androidx.appcompat.app.AppCompatActivity;
+
+import com.example.aplicativocomedoriadatia.ui.StatusBanner;
 
 public class ForgotPassword extends AppCompatActivity {
 
@@ -23,24 +25,23 @@ public class ForgotPassword extends AppCompatActivity {
         btnResetPassword = findViewById(R.id.btnResetPassword);
         tvBackToLogin = findViewById(R.id.tvBackToLogin);
 
-        // Clique do botão de enviar
         btnResetPassword.setOnClickListener(v -> {
             String email = etEmail.getText().toString().trim();
 
             if (email.isEmpty()) {
-                Toast.makeText(ForgotPassword.this, "Digite seu e-mail", Toast.LENGTH_SHORT).show();
+                StatusBanner.show(this, StatusBanner.State.ERROR,
+                        "E-mail obrigatório", "Digite seu e-mail para continuar.", 3000);
             } else {
-                Toast.makeText(ForgotPassword.this,
-                        "Se o e-mail existir, enviaremos o link de recuperação",
-                        Toast.LENGTH_LONG).show();
+                // Aqui você pode integrar com Supabase reset password, se desejar.
+                StatusBanner.show(this, StatusBanner.State.SUCCESS,
+                        "Verifique seu e-mail", "Se o e-mail existir, enviaremos o link de recuperação.", 3500);
             }
         });
 
-        // 🔹 Clique em "Voltar ao login"
         tvBackToLogin.setOnClickListener(v -> {
             Intent intent = new Intent(ForgotPassword.this, LoginActivity.class);
             startActivity(intent);
-            finish(); // fecha a tela atual
+            finish();
         });
     }
 }

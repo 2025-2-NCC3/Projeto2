@@ -5,12 +5,11 @@ import android.os.Bundle;
 import android.text.TextUtils;
 import android.util.Patterns;
 import android.view.View;
-import android.widget.Toast;
 
 import androidx.activity.EdgeToEdge;
-import androidx.annotation.WorkerThread;
 import androidx.appcompat.app.AppCompatActivity;
 
+import com.example.aplicativocomedoriadatia.ui.StatusBanner;
 import com.google.android.material.button.MaterialButton;
 import com.google.android.material.textfield.TextInputEditText;
 import com.google.android.material.textfield.TextInputLayout;
@@ -48,16 +47,12 @@ public class LoginActivity extends AppCompatActivity {
         session = new SessionManager(this);
 
         btnLogin.setOnClickListener(v -> tryLogin());
-        findViewById(R.id.tvGoSignup).setOnClickListener(v -> {
-            Intent intent = new Intent(LoginActivity.this, SignupActivity.class);
-            startActivity(intent);
-        });
-
-        findViewById(R.id.tvForgot).setOnClickListener(v -> {
-            Intent intent = new Intent(LoginActivity.this, ForgotPassword.class);
-            startActivity(intent);
-        });
-
+        findViewById(R.id.tvGoSignup).setOnClickListener(v ->
+                startActivity(new Intent(LoginActivity.this, SignupActivity.class))
+        );
+        findViewById(R.id.tvForgot).setOnClickListener(v ->
+                startActivity(new Intent(LoginActivity.this, ForgotPassword.class))
+        );
     }
 
     private void tryLogin() {
@@ -85,9 +80,11 @@ public class LoginActivity extends AppCompatActivity {
                 if (resp != null && resp.isValid()) {
                     session.save(resp.accessToken, resp.refreshToken, email);
                     runOnUiThread(() -> {
-                        Toast.makeText(this, "Login realizado!", Toast.LENGTH_SHORT).show();
+                        // Sucesso
+                        StatusBanner.show(this, StatusBanner.State.SUCCESS,
+                                "Login realizado", "Bem-vindo(a) de volta!", 1500);
                         startActivity(new Intent(this, MainActivity.class));
-                        finish(); // fecha a tela de login
+                        finish();
                     });
                 } else {
                     failUi("Credenciais inválidas.");
@@ -103,7 +100,9 @@ public class LoginActivity extends AppCompatActivity {
     }
 
     private void failUi(String msg) {
-        runOnUiThread(() -> Toast.makeText(this, msg, Toast.LENGTH_LONG).show());
+        runOnUiThread(() -> StatusBanner.show(
+                this, StatusBanner.State.ERROR, "Não foi possível entrar", msg, 3000
+        ));
     }
 
     private String safeText(TextInputEditText et) {
