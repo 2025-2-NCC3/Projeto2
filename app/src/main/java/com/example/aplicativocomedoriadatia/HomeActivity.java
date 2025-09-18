@@ -172,7 +172,13 @@ public class HomeActivity extends AppCompatActivity {
                 // Se quiser otimizar, selecione apenas campos necessários:
                 // "products?select=id,name,price,image_url&order=created_at.desc&limit=12"
                 List<Product> list = api.getList(
-                        "products?select=*&order=created_at.desc&limit=12", type);
+                        "products"
+                                + "?select=id,slug,name,description,category_id,image_url,is_active,cost_estimated,stock_qty,created_at,updated_at"
+                                + "&is_active=eq.true"
+                                + "&order=created_at.desc"
+                                + "&limit=12",
+                        type
+                );
 
                 runOnUiThread(() -> showContent(list));
 

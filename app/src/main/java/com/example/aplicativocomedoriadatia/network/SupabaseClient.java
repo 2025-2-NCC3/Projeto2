@@ -29,6 +29,7 @@ public class SupabaseClient {
                 .url(url)
                 .addHeader("apikey", anonKey)
                 .addHeader("Authorization", "Bearer " + anonKey)
+                .addHeader("Accept", "application/json")
                 .addHeader("Accept-Profile", "public")
                 .addHeader("Prefer", "return=representation")
                 .build();
