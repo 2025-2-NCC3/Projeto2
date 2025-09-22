@@ -1,14 +1,16 @@
 # FECAP - Fundação de Comércio Álvares Penteado
 
 <p align="center">
-<a href= "https://www.fecap.br/"><img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRhZPrRa89Kma0ZZogxm0pi-tCn_TLKeHGVxywp-LXAFGR3B1DPouAJYHgKZGV0XTEf4AE&usqp=CAU" alt="FECAP - Fundação de Comércio Álvares Penteado" border="0"></a>
+<a href="https://www.fecap.br/">
+  <img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRhZPrRa89Kma0ZZogxm0pi-tCn_TLKeHGVxywp-LXAFGR3B1DPouAJYHgKZGV0XTEf4AE&usqp=CAU" alt="FECAP - Fundação de Comércio Álvares Penteado">
+</a>
 </p>
 
-# Comedoria da Tia
+# 🍴 Comedoria da Tia
 
-## Grupo: CT Dev's (Desenvolvedores da Comedoria da Tia)
+## 👥 Grupo: CT Dev's (Desenvolvedores da Comedoria da Tia)
 
-## 👩‍💻 Integrantes  
+### 👩‍💻 Integrantes  
 
 - **Breno Costa Nascimento** — [GitHub](https://github.com/brenocosta19) | [LinkedIn](https://www.linkedin.com/in/breno-costa-28a401264/)  
 - **Bruno Souza Lima** — [GitHub](https://github.com/BrunoSouza06) | [LinkedIn](https://www.linkedin.com/in/bruno-souza-lima-448850263/)  
@@ -16,19 +18,18 @@
 - **Vinicius Nishimura Reis** — [GitHub](https://github.com/Vinishireis) | [LinkedIn](https://www.linkedin.com/in/vinicius-nishimura-reis/)  
 - **Nicolly Silva Soares** — [GitHub](https://github.com/nicollysoarez) | [LinkedIn](https://www.linkedin.com/in/nicolly-silva-soares-10b627171/)  
 
-## 📚 Professores Orientadores  
+### 📚 Professores Orientadores  
 
-- <a href="https://www.linkedin.com/in/marco-aurelio-lima-barbosa/" target="_blank" rel="noopener noreferrer"> Marco Aurélio Lima Barbosa</a> 
-- <a href="https://www.linkedin.com/in/rodrigo-da-rosa-phd/" target="_blank" rel="noopener noreferrer"> Rodrigo Rosa </a> 
-- <a href="https://www.linkedin.com/in/katia-bossi/" target="_blank" rel="noopener noreferrer"> Kátia Bossi </a>
-- <a href="https://www.linkedin.com/in/victorbarq/" target="_blank" rel="noopener noreferrer"> Victor Bruno Alexander Rosetti de Quiroz </a>  
-
+- [Marco Aurélio Lima Barbosa](https://www.linkedin.com/in/marco-aurelio-lima-barbosa/)  
+- [Rodrigo Rosa](https://www.linkedin.com/in/rodrigo-da-rosa-phd/)  
+- [Kátia Bossi](https://www.linkedin.com/in/katia-bossi/)  
+- [Victor Bruno Alexander Rosetti de Quiroz](https://www.linkedin.com/in/victorbarq/)  
 
 ---
 
 ## 📝 Descrição  
 
-O projeto **Comedoria da Tia** é um aplicativo mobile e web que busca **facilitar o dia a dia acadêmico** dos alunos da FECAP, oferecendo uma solução para gerenciamento da cantina universitária.  
+O projeto **Comedoria da Tia** é um aplicativo **mobile e web** que busca **facilitar o dia a dia acadêmico** dos alunos da FECAP, oferecendo uma solução para gerenciamento da cantina universitária.  
 
 O sistema possibilita:  
 - Cadastro e login de usuários com integração ao **Supabase** (Auth + Database + Storage).  
@@ -42,34 +43,71 @@ Nosso objetivo é **digitalizar a experiência da cantina**, tornando-a prática
 
 ## 🗂 Estrutura de Pastas  
 
+- `Analise_Descritiva_de_Dados`  
+- `Programacao_Orientada_a_Objetivos_e_Estrutura_de_Dados`  
+- `Programacao_para_Dispositivos_Moveis`  
+- `Projeto_Interdisciplinar_Aplicativo_Movel`  
+
+---
+
+# 📂 Estrutura do Projeto – Entrega 01 (Semestre Atual)
+
+Este repositório contém as entregas organizadas por disciplina do semestre corrente.  
+Cada pasta corresponde a uma matéria da grade do curso, com seus respectivos documentos, códigos e projetos.
+
+## 🔗 Links para as Matérias
+
+- [📂 **Análise Descritiva de Dados**](Entrega_01/Analise_Descritiva_de_Dados)  
+- [📂 **Programação Orientada a Objetivos e Estrutura de Dados**](Entrega_01/Programacao_Orientada_a_Objetivos_e_Estrutura_de_Dados)  
+- [📂 **Programação para Dispositivos Móveis**](Entrega_01/Programacao_para_Dispositivos_Moveis)  
+- [📂 **Projeto Interdisciplinar – Aplicativo Móvel**](Entrega_01/Projeto_Interdisciplinar_Aplicativo_Movel)  
+
+---
+
+## 📦 Estrutura Completa
+
 ```
 
-Raiz
-│ README.md
-│ .gitignore
+📦 Entrega\_01
+├── 📂 Analise\_Descritiva\_de\_Dados
+│   └── 📜 (Documentos e exercícios relacionados à disciplina)
 │
-├── documentos
-│   ├── antigos
-│   └── Documentação.docx
+├── 📂 Programacao\_Orientada\_a\_Objetivos\_e\_Estrutura\_de\_Dados
+│   └── 📜 (Códigos-fonte, exercícios e relatórios da disciplina)
 │
-├── executáveis
-│   ├── windows
-│   ├── android
-│   └── HTML
+├── 📂 Programacao\_para\_Dispositivos\_Moveis
+│   ├── 📂 app               # Código-fonte do aplicativo Android (Java)
+│   ├── 📂 assets            # Recursos estáticos (imagens, ícones, fontes)
+│   ├── 📂 build             # Arquivos gerados pelo Gradle
+│   ├── 📂 gradle            # Configurações de build
+│   ├── 📂 .idea             # Configurações do projeto no Android Studio
+│   ├── 📂 Imagens           # Recursos extras do projeto
+│   ├── 📂 Web/comedoria\_da\_tia\_web
+│   │   ├── 📂 public        # Arquivos estáticos do React
+│   │   ├── 📂 src           # Código-fonte principal em React Vite
+│   │   ├── 📜 package.json  # Dependências do projeto web
+│   │   ├── 📜 vite.config.js
+│   │   └── 📜 vercel.json   # Configurações de deploy
+│   ├── 📜 build.gradle
+│   ├── 📜 settings.gradle
+│   ├── 📜 gradlew / gradlew\.bat
+│   └── 📜 README.md         # Documentação do módulo mobile
 │
-├── imagens
+├── 📂 Projeto\_Interdisciplinar\_Aplicativo\_Movel
+│   └── 📜 (Relatórios, documentação e integração das disciplinas)
 │
-└── src
-├── Backend
-└── Frontend
+└── 📜 README.md             # Documentação geral do repositório
 
 ````
 
-- **README.md**: guia geral do projeto.  
-- **documentos/**: documentação técnica.  
-- **executáveis/**: binários e builds do app.  
-- **imagens/**: logos, ícones e assets.  
-- **src/**: código fonte (frontend + backend).  
+---
+
+## 📖 Descrição Geral
+
+- **Análise Descritiva de Dados** → Atividades de estatística descritiva, análises com médias, percentis e gráficos.  
+- **Programação Orientada a Objetivos e Estrutura de Dados** → Exercícios de POO e estruturas como listas, filas e pilhas.  
+- **Programação para Dispositivos Móveis** → Aplicativo **Android (Java)** integrado ao banco de dados **Supabase** e painel administrativo em **React Vite+**.  
+- **Projeto Interdisciplinar – Aplicativo Móvel** → Integra todas as disciplinas em um único projeto aplicado: **Sistema da Comedoria da Tia**.  
 
 ---
 
@@ -79,12 +117,9 @@ Raiz
 - Baixe o arquivo `ComedoriaDaTia.apk` na pasta `executáveis/android`.  
 - Execute no celular e siga as instruções.  
 
-### **Windows**
-- Baixe `ComedoriaDaTia.exe` na pasta `executáveis/windows`.  
-- Clique e execute como qualquer programa.  
 
 ### **Web/HTML**
-- Abra o arquivo `index.html` em um navegador.  
+- Acesse o link do sistema em um navegador.  
 
 ---
 
@@ -120,11 +155,11 @@ Mais detalhes em: [Creative Commons](https://chooser-beta.creativecommons.org/).
 
 ## 🎓 Referências
 
-1. [https://github.com/iuricode/readme-template](https://github.com/iuricode/readme-template)
-2. [https://github.com/gabrieldejesus/readme-model](https://github.com/gabrieldejesus/readme-model)
-3. [https://chooser-beta.creativecommons.org/](https://chooser-beta.creativecommons.org/)
-4. [https://freesound.org/](https://freesound.org/)
-5. [https://www.toptal.com/developers/gitignore](https://www.toptal.com/developers/gitignore)
+1. [iuricode/readme-template](https://github.com/iuricode/readme-template)
+2. [gabrieldejesus/readme-model](https://github.com/gabrieldejesus/readme-model)
+3. [Creative Commons Chooser](https://chooser-beta.creativecommons.org/)
+4. [FreeSound](https://freesound.org/)
+5. [Toptal Gitignore Generator](https://www.toptal.com/developers/gitignore)
 
 ---
 
