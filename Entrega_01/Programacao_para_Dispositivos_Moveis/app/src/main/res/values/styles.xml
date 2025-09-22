@@ -1,0 +1,72 @@
+<resources>
+
+    <!-- ========= ShapeAppearance overlays ========= -->
+
+    <!-- Alias genérico para cobrir referências a @style/ShapeAppearanceOverlay -->
+    <style name="ShapeAppearanceOverlay">
+        <item name="cornerFamily">rounded</item>
+        <item name="cornerSize">16dp</item>
+    </style>
+
+    <!-- Versão "App" (pode ser usada como overlay em botões, cards etc.) -->
+    <style name="ShapeAppearanceOverlay.App">
+        <item name="cornerFamily">rounded</item>
+        <item name="cornerSize">16dp</item>
+    </style>
+
+    <!-- Cantos mais arredondados (pill-ish) -->
+    <style name="ShapeAppearanceOverlay.App.Rounded28">
+        <item name="cornerFamily">rounded</item>
+        <item name="cornerSize">28dp</item>
+        <!-- Para “pill” perfeito:
+        <item name="cornerSize">50%</item>
+        -->
+    </style>
+
+    <!-- Alias bem genérico para casos antigos que usem @style/Shape -->
+    <style name="Shape">
+        <item name="cornerFamily">rounded</item>
+        <item name="cornerSize">16dp</item>
+    </style>
+
+    <!-- ========= Botões arredondados (base) ========= -->
+
+    <!-- Botão cheio (primário) -->
+    <style name="Widget.App.RoundedButton.Filled" parent="Widget.Material3.Button">
+        <item name="shapeAppearanceOverlay">@style/ShapeAppearanceOverlay.App.Rounded28</item>
+        <item name="android:minHeight">56dp</item>
+        <item name="android:textAllCaps">false</item>
+        <item name="android:insetLeft">0dp</item>
+        <item name="android:insetRight">0dp</item>
+    </style>
+
+    <!-- Botão contornado -->
+    <style name="Widget.App.RoundedButton.Outlined" parent="Widget.Material3.Button.OutlinedButton">
+        <item name="shapeAppearanceOverlay">@style/ShapeAppearanceOverlay.App.Rounded28</item>
+        <item name="android:minHeight">56dp</item>
+        <item name="android:textAllCaps">false</item>
+        <item name="android:insetLeft">0dp</item>
+        <item name="android:insetRight">0dp</item>
+    </style>
+
+    <!-- ========= Botões arredondados VERDES ========= -->
+
+    <!-- Cheio (fundo verde, texto branco) -->
+    <style name="Widget.App.RoundedButton.GreenFilled" parent="Widget.App.RoundedButton.Filled">
+        <item name="backgroundTint">@color/green</item>
+        <item name="android:textColor">@android:color/white</item>
+        <item name="iconTint">@android:color/white</item>
+        <!-- ripple opcional -->
+        <item name="rippleColor">@color/green</item>
+    </style>
+
+    <!-- Contornado (borda/texto verdes, fundo transparente) -->
+    <style name="Widget.App.RoundedButton.GreenOutlined" parent="Widget.App.RoundedButton.Outlined">
+        <item name="strokeColor">@color/green</item>
+        <item name="strokeWidth">2dp</item>
+        <item name="android:textColor">@color/green</item>
+        <item name="iconTint">@color/green</item>
+        <item name="rippleColor">@color/green</item>
+    </style>
+
+</resources>
