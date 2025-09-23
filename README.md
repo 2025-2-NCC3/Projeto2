@@ -57,18 +57,18 @@ Cada pasta corresponde a uma matéria da grade do curso, com seus respectivos do
 
 ## 🔗 Links para as Matérias
 
-- [📂 **Análise Descritiva de Dados**](Entrega_01/Analise_Descritiva_de_Dados)  
-- [📂 **Programação Orientada a Objetivos e Estrutura de Dados**](Entrega_01/Programacao_Orientada_a_Objetivos_e_Estrutura_de_Dados)  
-- [📂 **Programação para Dispositivos Móveis**](Entrega_01/Programacao_para_Dispositivos_Moveis)  
-- [📂 **Projeto Interdisciplinar – Aplicativo Móvel**](Entrega_01/Projeto_Interdisciplinar_Aplicativo_Movel)  
+- [📂 **Análise Descritiva de Dados**](Documentos/Entrega_01/Analise_Descritiva_de_Dados)  
+- [📂 **Programação Orientada a Objetivos e Estrutura de Dados**](Documentos/Entrega_01/Programacao_Orientada_a_Objetivos_e_Estrutura_de_Dados)  
+- [📂 **Programação para Dispositivos Móveis**](Documentos/Entrega_01/Programacao_para_Dispositivos_Moveis)  
+- [📂 **Projeto Interdisciplinar – Aplicativo Móvel**](Documentos/Entrega_01/Projeto_Interdisciplinar_Aplicativo_Movel)  
 
 ---
 
 ## 📦 Estrutura Completa
 
 ```
-
-📦 Entrega\_01
+├── 📂 Documentos
+│   └── 📦 Entrega\_01
 ├── 📂 Analise\_Descritiva\_de\_Dados
 │   └── 📜 (Documentos e exercícios relacionados à disciplina)
 │
