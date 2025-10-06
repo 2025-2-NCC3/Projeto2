@@ -1,6 +1,39 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
+
+    <!-- Tons principais -->
     <color name="black">#FF000000</color>
     <color name="white">#FFFFFFFF</color>
+
+    <!-- Verde institucional -->
     <color name="green">#0C6500</color>
+    <color name="emerald_500">#10B981</color>
+    <color name="emerald_600">#059669</color>
+    <color name="emerald_200">#A7F3D0</color>
+
+    <!-- Cinzas para o modo claro -->
+    <color name="gray_900">#111827</color>
+    <color name="gray_800">#1F2937</color>
+    <color name="gray_600">#757575</color>
+    <color name="gray_500">#9E9E9E</color>
+    <color name="gray_400">#9CA3AF</color>
+    <color name="gray_200">#E5E7EB</color>
+    <color name="gray_100">#F3F4F6</color>
+
+    <!-- Texto (pretos e cinzas escuros) -->
+    <color name="text_primary">@color/black</color>
+    <color name="text_muted">@color/gray_600</color>
+    <color name="link_emerald">@color/emerald_600</color>
+
+    <!-- Bordas e contornos -->
+    <color name="card_border">#1A000000</color> <!-- preto 10% -->
+    <color name="outline_stroke">#33000000</color> <!-- preto 20% -->
+
+    <!-- Fundo branco do cartão (sem transparência) -->
+    <color name="card_glass">#FFFFFFFF</color>
+
+    <!-- Badge do carrinho -->
+    <color name="badge_red">#E53935</color>
+
+
 </resources>

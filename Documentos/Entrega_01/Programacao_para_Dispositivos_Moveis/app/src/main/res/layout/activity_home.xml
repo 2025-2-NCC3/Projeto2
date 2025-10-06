@@ -1,273 +1,299 @@
 <?xml version="1.0" encoding="utf-8"?>
-<androidx.core.widget.NestedScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+<androidx.constraintlayout.widget.ConstraintLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/home_root"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:fillViewport="true"
     android:background="@color/white">
 
-    <LinearLayout
-        android:orientation="vertical"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:padding="16dp">
+    <!-- === CONTEÚDO NO ESTILO ANTIGO (NestedScrollView como antes) === -->
+    <androidx.core.widget.NestedScrollView
+        android:id="@+id/contentScroll"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        android:fillViewport="true"
+        android:background="@color/white"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintBottom_toTopOf="@id/bottomNav">
 
-        <!-- Toolbar AppCompat -->
-        <androidx.appcompat.widget.Toolbar
-            android:id="@+id/topAppBar"
-            android:layout_width="match_parent"
-            android:layout_height="?attr/actionBarSize"
-            android:background="@android:color/transparent"
-            app:titleTextColor="@color/black"
-            app:logo="@mipmap/ic_launcher_logo_circulo"
-            app:menu="@menu/menu_home_top"/>
-
-        <!-- Barra de busca (fake) -->
         <LinearLayout
-            android:id="@+id/searchBar"
+            android:orientation="vertical"
             android:layout_width="match_parent"
-            android:layout_height="48dp"
-            android:layout_marginTop="14dp"
-            android:layout_marginBottom="10dp"
-            android:paddingStart="14dp"
-            android:paddingEnd="14dp"
-            android:gravity="center_vertical"
-            android:background="@drawable/bg_search">
+            android:layout_height="wrap_content"
+            android:padding="16dp">
 
-            <ImageView
-                android:layout_width="20dp"
-                android:layout_height="20dp"
-                android:src="@android:drawable/ic_menu_search"
-                android:tint="#7A000000" />
-
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="Buscar lanches, bebidas..."
-                android:textColor="#7A000000"
-                android:paddingStart="8dp"/>
-        </LinearLayout>
-
-        <!-- Banner em CardView -->
-        <androidx.cardview.widget.CardView
-            android:layout_width="match_parent"
-            android:layout_height="160dp"
-            android:layout_marginBottom="14dp"
-            app:cardCornerRadius="18dp"
-            app:cardElevation="6dp">
-
-            <FrameLayout
+            <!-- Toolbar AppCompat -->
+            <!-- Toolbar AppCompat com logo à esquerda -->
+            <androidx.appcompat.widget.Toolbar
+                android:id="@+id/topAppBar"
                 android:layout_width="match_parent"
-                android:layout_height="match_parent">
+                android:layout_height="?attr/actionBarSize"
+                android:background="@android:color/transparent"
+                android:paddingStart="0dp"
+                app:contentInsetStart="0dp"
+                app:contentInsetStartWithNavigation="0dp"
+                app:titleTextColor="@color/black"
+                app:menu="@menu/menu_home_top">
+
+                <!-- LOGO fixada no canto esquerdo -->
+                <ImageView
+                    android:id="@+id/ivLogo"
+                    android:layout_width="wrap_content"
+                    android:layout_height="64dp"
+                    android:layout_gravity="start|center_vertical"
+                    android:adjustViewBounds="true"
+                    android:scaleType="fitStart"
+                    android:contentDescription="@string/app_name"
+                    android:src="@drawable/ic_logo_comedoria"
+                    android:paddingStart="0dp"
+                    android:layout_marginStart="0dp"/>
+            </androidx.appcompat.widget.Toolbar>
+
+
+            <!-- Barra de busca REAL (componente) -->
+            <include
+                android:id="@+id/searchBar"
+                layout="@layout/view_search_bar"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="14dp"
+                android:layout_marginBottom="10dp"/>
+
+            <!-- Banner em CardView -->
+            <androidx.cardview.widget.CardView
+                android:layout_width="match_parent"
+                android:layout_height="160dp"
+                android:layout_marginBottom="14dp"
+                app:cardCornerRadius="18dp"
+                app:cardElevation="6dp">
+
+                <FrameLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent">
+
+                    <ImageView
+                        android:id="@+id/banner"
+                        android:layout_width="match_parent"
+                        android:layout_height="match_parent"
+                        android:scaleType="centerCrop"
+                        android:src="@drawable/banner_ofertas"
+                        android:contentDescription="Banner de ofertas" />
+
+                    <View
+                        android:layout_width="match_parent"
+                        android:layout_height="match_parent"
+                        android:background="@drawable/overlay_banner_gradient"/>
+
+                    <TextView
+                        android:id="@+id/bannerChip"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_gravity="bottom|start"
+                        android:layout_margin="12dp"
+                        android:paddingLeft="14dp"
+                        android:paddingRight="14dp"
+                        android:paddingTop="8dp"
+                        android:paddingBottom="8dp"
+                        android:text="OFERTAS DA SEMANA"
+                        android:textStyle="bold"
+                        android:textColor="@color/white"
+                        android:background="@drawable/bg_chip_green"/>
+                </FrameLayout>
+            </androidx.cardview.widget.CardView>
+
+            <!-- "Chips" sem Material: Scroll horizontal com TextViews -->
+            <HorizontalScrollView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:fillViewport="false"
+                android:scrollbars="none"
+                android:layout_marginBottom="8dp">
+
+                <LinearLayout
+                    android:id="@+id/chipsContainer"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal">
+
+                    <TextView
+                        android:id="@+id/chipTodos"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Todos"
+                        android:textColor="@color/white"
+                        android:textStyle="bold"
+                        android:background="@drawable/bg_chip_green"
+                        android:paddingLeft="14dp"
+                        android:paddingRight="14dp"
+                        android:paddingTop="8dp"
+                        android:paddingBottom="8dp"
+                        android:layout_marginRight="8dp"/>
+
+                    <TextView
+                        android:id="@+id/chipLanches"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Lanches"
+                        android:textColor="@color/white"
+                        android:textStyle="bold"
+                        android:background="@drawable/bg_chip_green"
+                        android:paddingLeft="14dp"
+                        android:paddingRight="14dp"
+                        android:paddingTop="8dp"
+                        android:paddingBottom="8dp"
+                        android:layout_marginRight="8dp"/>
+
+                    <TextView
+                        android:id="@+id/chipBebidas"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Bebidas"
+                        android:textColor="@color/white"
+                        android:textStyle="bold"
+                        android:background="@drawable/bg_chip_green"
+                        android:paddingLeft="14dp"
+                        android:paddingRight="14dp"
+                        android:paddingTop="8dp"
+                        android:paddingBottom="8dp"
+                        android:layout_marginRight="8dp"/>
+
+                    <TextView
+                        android:id="@+id/chipDoces"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Doces"
+                        android:textColor="@color/white"
+                        android:textStyle="bold"
+                        android:background="@drawable/bg_chip_green"
+                        android:paddingLeft="14dp"
+                        android:paddingRight="14dp"
+                        android:paddingTop="8dp"
+                        android:paddingBottom="8dp"
+                        android:layout_marginRight="8dp"/>
+
+                    <TextView
+                        android:id="@+id/chipPromocoes"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Promoções"
+                        android:textColor="@color/white"
+                        android:textStyle="bold"
+                        android:background="@drawable/bg_chip_green"
+                        android:paddingLeft="14dp"
+                        android:paddingRight="14dp"
+                        android:paddingTop="8dp"
+                        android:paddingBottom="8dp"/>
+                </LinearLayout>
+            </HorizontalScrollView>
+
+            <!-- Cabeçalho da seção -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:gravity="center_vertical"
+                android:layout_marginTop="2dp"
+                android:layout_marginBottom="6dp">
+
+                <TextView
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:text="Mais pedidos"
+                    android:textStyle="bold"
+                    android:textSize="18sp"
+                    android:textColor="@color/black" />
+
+                <TextView
+                    android:id="@+id/btnSeeAll"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Ver tudo"
+                    android:textStyle="bold"
+                    android:textSize="14sp"
+                    android:textColor="@color/green"/>
+            </LinearLayout>
+
+            <!-- Shimmer skeleton -->
+            <com.facebook.shimmer.ShimmerFrameLayout
+                android:id="@+id/shimmerContainer"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                app:shimmer_auto_start="true"
+                app:shimmer_base_alpha="0.6"
+                app:shimmer_highlight_alpha="0.9"
+                app:shimmer_duration="1200">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical">
+
+                    <include layout="@layout/item_product_skeleton"/>
+                    <include layout="@layout/item_product_skeleton"/>
+                </LinearLayout>
+            </com.facebook.shimmer.ShimmerFrameLayout>
+
+            <!-- Lista de produtos -->
+            <androidx.recyclerview.widget.RecyclerView
+                android:id="@+id/recyclerProducts"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:visibility="gone"
+                android:nestedScrollingEnabled="false"
+                tools:listitem="@layout/item_product"/>
+
+            <!-- Caixa de erro -->
+            <LinearLayout
+                android:id="@+id/errorBox"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:gravity="center"
+                android:padding="20dp"
+                android:visibility="gone">
 
                 <ImageView
-                    android:id="@+id/banner"
-                    android:layout_width="match_parent"
-                    android:layout_height="match_parent"
-                    android:scaleType="centerCrop"
-                    android:src="@drawable/banner_ofertas"
-                    android:contentDescription="Banner de ofertas" />
-
-                <View
-                    android:layout_width="match_parent"
-                    android:layout_height="match_parent"
-                    android:background="@drawable/overlay_banner_gradient"/>
+                    android:layout_width="48dp"
+                    android:layout_height="48dp"
+                    android:tint="@color/green"
+                    android:src="@android:drawable/ic_dialog_alert"/>
 
                 <TextView
-                    android:id="@+id/bannerChip"
+                    android:id="@+id/errorMsg"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:layout_gravity="bottom|start"
-                    android:layout_margin="12dp"
-                    android:paddingLeft="14dp"
-                    android:paddingRight="14dp"
-                    android:paddingTop="8dp"
-                    android:paddingBottom="8dp"
-                    android:text="OFERTAS DA SEMANA"
-                    android:textStyle="bold"
-                    android:textColor="@color/white"
-                    android:background="@drawable/bg_chip_green"/>
-            </FrameLayout>
-        </androidx.cardview.widget.CardView>
+                    android:layout_marginTop="8dp"
+                    android:text="Não foi possível carregar os produtos."
+                    android:textColor="@color/black"/>
 
-        <!-- "Chips" sem Material: Scroll horizontal com TextViews -->
-        <HorizontalScrollView
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:fillViewport="false"
-            android:scrollbars="none"
-            android:layout_marginBottom="8dp">
-
-            <LinearLayout
-                android:id="@+id/chipsContainer"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:orientation="horizontal">
-
-                <TextView
-                    android:id="@+id/chipTodos"
+                <Button
+                    android:id="@+id/btnRetry"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="Todos"
-                    android:textColor="@color/white"
-                    android:textStyle="bold"
-                    android:background="@drawable/bg_chip_green"
-                    android:paddingLeft="14dp"
-                    android:paddingRight="14dp"
-                    android:paddingTop="8dp"
-                    android:paddingBottom="8dp"
-                    android:layout_marginRight="8dp"/>
-
-                <TextView
-                    android:id="@+id/chipLanches"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="Lanches"
-                    android:textColor="@color/white"
-                    android:textStyle="bold"
-                    android:background="@drawable/bg_chip_green"
-                    android:paddingLeft="14dp"
-                    android:paddingRight="14dp"
-                    android:paddingTop="8dp"
-                    android:paddingBottom="8dp"
-                    android:layout_marginRight="8dp"/>
-
-                <TextView
-                    android:id="@+id/chipBebidas"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="Bebidas"
-                    android:textColor="@color/white"
-                    android:textStyle="bold"
-                    android:background="@drawable/bg_chip_green"
-                    android:paddingLeft="14dp"
-                    android:paddingRight="14dp"
-                    android:paddingTop="8dp"
-                    android:paddingBottom="8dp"
-                    android:layout_marginRight="8dp"/>
-
-                <TextView
-                    android:id="@+id/chipDoces"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="Doces"
-                    android:textColor="@color/white"
-                    android:textStyle="bold"
-                    android:background="@drawable/bg_chip_green"
-                    android:paddingLeft="14dp"
-                    android:paddingRight="14dp"
-                    android:paddingTop="8dp"
-                    android:paddingBottom="8dp"
-                    android:layout_marginRight="8dp"/>
-
-                <TextView
-                    android:id="@+id/chipPromocoes"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="Promoções"
-                    android:textColor="@color/white"
-                    android:textStyle="bold"
-                    android:background="@drawable/bg_chip_green"
-                    android:paddingLeft="14dp"
-                    android:paddingRight="14dp"
-                    android:paddingTop="8dp"
-                    android:paddingBottom="8dp"/>
+                    android:text="Tentar novamente"
+                    android:layout_marginTop="10dp"
+                    android:backgroundTint="@color/green"/>
             </LinearLayout>
-        </HorizontalScrollView>
 
-        <!-- Cabeçalho da seção -->
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:gravity="center_vertical"
-            android:layout_marginTop="2dp"
-            android:layout_marginBottom="6dp">
-
-            <TextView
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:text="Mais pedidos"
-                android:textStyle="bold"
-                android:textSize="18sp"
-                android:textColor="@color/black" />
-
-            <TextView
-                android:id="@+id/btnSeeAll"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="Ver tudo"
-                android:textStyle="bold"
-                android:textSize="14sp"
-                android:textColor="@color/green"/>
-        </LinearLayout>
-
-        <!-- Shimmer skeleton -->
-        <com.facebook.shimmer.ShimmerFrameLayout
-            android:id="@+id/shimmerContainer"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            app:shimmer_auto_start="true"
-            app:shimmer_base_alpha="0.6"
-            app:shimmer_highlight_alpha="0.9"
-            app:shimmer_duration="1200">
-
-            <LinearLayout
+            <Space
                 android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:orientation="vertical">
+                android:layout_height="24dp" />
 
-                <include layout="@layout/item_product_skeleton"/>
-                <include layout="@layout/item_product_skeleton"/>
-            </LinearLayout>
-        </com.facebook.shimmer.ShimmerFrameLayout>
-
-        <!-- Lista de produtos -->
-        <androidx.recyclerview.widget.RecyclerView
-            android:id="@+id/recyclerProducts"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:visibility="gone"
-            android:nestedScrollingEnabled="false"
-            tools:listitem="@layout/item_product"/>
-
-        <!-- Caixa de erro -->
-        <LinearLayout
-            android:id="@+id/errorBox"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:orientation="vertical"
-            android:gravity="center"
-            android:padding="20dp"
-            android:visibility="gone">
-
-            <ImageView
-                android:layout_width="48dp"
-                android:layout_height="48dp"
-                android:tint="@color/green"
-                android:src="@android:drawable/ic_dialog_alert"/>
-
-            <TextView
-                android:id="@+id/errorMsg"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="8dp"
-                android:text="Não foi possível carregar os produtos."
-                android:textColor="@color/black"/>
-
-            <Button
-                android:id="@+id/btnRetry"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="Tentar novamente"
-                android:layout_marginTop="10dp"
-                android:backgroundTint="@color/green"/>
         </LinearLayout>
+    </androidx.core.widget.NestedScrollView>
 
-        <Space
-            android:layout_width="match_parent"
-            android:layout_height="24dp" />
+    <!-- === BOTTOM NAV FIXA NO RODAPÉ === -->
+    <include
+        android:id="@+id/bottomNav"
+        layout="@layout/activity_navbar"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintBottom_toBottomOf="parent" />
 
-    </LinearLayout>
-</androidx.core.widget.NestedScrollView>
+</androidx.constraintlayout.widget.ConstraintLayout>

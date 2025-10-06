@@ -6,6 +6,7 @@
         android:id="@+id/action_cart"
         android:title="Carrinho"
         android:icon="@drawable/ic_cart"
-        app:showAsAction="always" />
+        app:showAsAction="always"
+        app:actionLayout="@layout/view_cart_action" />
 
 </menu>
