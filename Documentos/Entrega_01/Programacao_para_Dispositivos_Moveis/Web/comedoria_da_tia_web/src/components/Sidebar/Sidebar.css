@@ -1,0 +1,134 @@
+:root{
+  --sb-bg:#0b1020;
+  --sb-border:rgba(255,255,255,.08);
+  --sb-text:#e5e7eb;
+  --sb-muted:#9aa7bd;
+  --sb-active:#10b981;
+  --sb-hover:rgba(255,255,255,.06);
+  --sb-radius:14px;
+}
+
+.sidebar{
+  position: sticky; top:0; height:100dvh;
+  width: 260px; min-width: 260px;
+  background: linear-gradient(180deg, #0b1220 0%, #0c1426 100%);
+  border-right: 1px solid var(--sb-border);
+  color: var(--sb-text);
+  display: flex; flex-direction: column;
+  padding: 12px;
+  gap: 8px;
+  overflow: hidden;
+  contain: layout paint;
+}
+
+.sidebar.is-collapsed{ width: 76px; min-width: 76px; }
+
+.sb-header{
+  display:flex; align-items:center; justify-content:space-between;
+  padding: 6px 6px 6px 8px;
+  position: sticky; top: 0;
+  background: linear-gradient(180deg, rgba(11,18,32,.9) 0%, rgba(12,20,38,.85) 100%);
+  backdrop-filter: blur(8px);
+  z-index: 2;
+  border-bottom: 1px solid transparent;
+}
+
+.sb-brand{ display:flex; align-items:center; gap:10px; min-width:0 }
+.sb-logo{
+  width:34px; height:34px; border-radius:10px;
+  display:grid; place-items:center;
+  background: linear-gradient(135deg, rgba(16,185,129,.25), rgba(34,211,238,.2));
+  border: 1px solid var(--sb-border);
+  flex: 0 0 auto;
+}
+.sb-title{ font-weight:800; letter-spacing:.2px; font-size:14px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis }
+
+.sb-collapse,
+.sb-mobile{
+  display:inline-flex; align-items:center; justify-content:center;
+  width:32px; height:32px; border-radius:10px;
+  background: transparent; border: 1px solid var(--sb-border);
+  color: var(--sb-text); cursor:pointer; flex: 0 0 auto;
+}
+.sb-collapse:hover,.sb-mobile:hover{ background: var(--sb-hover); }
+
+.sb-nav{ display:flex; flex-direction:column; gap:4px; height:100%; overflow: auto; padding-bottom: env(safe-area-inset-bottom, 0); }
+
+.sb-section{
+  margin: 10px 8px 2px; font-size: 11px; text-transform: uppercase;
+  letter-spacing: .12em; color: var(--sb-muted);
+}
+
+.sb-link{
+  display:flex; align-items:center; gap:10px;
+  padding:10px 10px; border-radius: var(--sb-radius);
+  color: var(--sb-text); text-decoration: none;
+  border: 1px solid transparent;
+}
+.sb-link:hover{ background: var(--sb-hover); border-color: var(--sb-border); }
+
+.sb-link.is-active{
+  background: linear-gradient(90deg, rgba(16,185,129,.18), rgba(34,211,238,.16));
+  border-color: rgba(16,185,129,.35);
+  color:#d1fae5;
+  box-shadow: 0 8px 24px rgba(16,185,129,.18);
+}
+
+.sb-link.is-disabled{
+  opacity:.6; cursor:not-allowed;
+  display:flex; align-items:center; gap:10px;
+  padding:10px 10px; border-radius: var(--sb-radius);
+  color: var(--sb-muted); border:1px dashed var(--sb-border);
+}
+
+.sb-icon{ width:20px; display:inline-grid; place-items:center; flex: 0 0 20px }
+.sb-label{ font-size:14px; min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap }
+
+.sb-logout{
+  display:flex; align-items:center; gap:10px;
+  padding:10px 10px; border-radius: var(--sb-radius);
+  background: transparent; border:1px solid var(--sb-border);
+  color: var(--sb-text); cursor: pointer; margin-top:auto;
+}
+.sb-logout:hover{ background: var(--sb-hover); }
+
+/* ======= Mobile / Tablet ======= */
+@media (max-width: 920px){
+  .sidebar{
+    position: fixed;
+    inset: 0 auto 0 0;
+    height: 100dvh;
+    width: 84vw; max-width: 320px; min-width: 280px;
+    transform: translateX(-100%);
+    transition: transform 220ms ease, box-shadow 220ms ease;
+    z-index: 50;
+    border-right: 1px solid var(--sb-border);
+    padding-bottom: calc(12px + env(safe-area-inset-bottom, 0));
+  }
+  .sidebar.is-open{
+    transform: translateX(0);
+    box-shadow: 0 20px 60px rgba(0,0,0,.5);
+  }
+  /* no modo mobile, ignorar colapso por largura */
+  .sidebar.is-collapsed{ width: 84vw; min-width: 280px; }
+  /* mostra botão “hambúrguer” no header quando mobile */
+  .sb-mobile{ display:inline-flex; }
+  .sb-collapse{ display:none; }
+}
+
+/* Overlay para o drawer */
+.sb-overlay{
+  position: fixed; inset: 0;
+  background: rgba(0,0,0,.45);
+  backdrop-filter: blur(1.5px);
+  z-index: 40;
+  opacity: 0; pointer-events: none;
+  transition: opacity 200ms ease;
+}
+.sb-overlay.is-visible{ opacity: 1; pointer-events: auto; }
+
+/* Acessibilidade: reduz animações se preferido */
+@media (prefers-reduced-motion: reduce){
+  .sidebar{ transition: none; }
+  .sb-overlay{ transition: none; }
+}
