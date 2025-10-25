@@ -11,9 +11,12 @@ import ProductNew from './pages/Products/ProductNew'
 import ProductsList from './pages/Products/ProductsList'
 import Promotion from './pages/Products/Promotion'
 
-// layout + guards (corrigido: paths e caixa)
+// layout + guards
 import AppLayout from './layouts/layouts'
 import RequireAuth from './Routes/RequireAuth'
+import RequireAdmin from './Routes/RequireAdmin' // ← Novo import
+import Home from './pages/Alunos/Home'
+import OffersAlunos from './pages/Alunos/OffersAlunos'
 
 function App() {
   const { NotifierHost } = useNotifier()
@@ -28,13 +31,21 @@ function App() {
         <Route path="/esqueceu-a-senha" element={<ForgotPassword />} />
         <Route path="/redefinir-a-senha" element={<ResetPassword />} />
 
-        {/* autenticadas */}
+        {/* autenticadas (qualquer usuário logado) */}
         <Route element={<RequireAuth />}>
           <Route path="/app" element={<AppLayout />}>
-            <Route index element={<Navigate to="produtos" replace />} />
-            <Route path="produtos" element={<ProductsList />} />
-            <Route path="produtos/novo" element={<ProductNew />} />
-            <Route path="produtos/promocao" element={<Promotion />} />
+            <Route index element={<Navigate to="alunos/home" replace />} />
+            
+            {/* Rotas para alunos (todos os usuários logados) */}
+            <Route path="alunos/home" element={<Home/>}/>
+            <Route path="alunos/ofertas" element={<OffersAlunos/>} />
+
+            {/* Rotas administrativas (apenas admin) */}
+            <Route element={<RequireAdmin />}>
+              <Route path="produtos" element={<ProductsList />} />
+              <Route path="produtos/novo" element={<ProductNew />} />
+              <Route path="produtos/promocao" element={<Promotion />} />
+            </Route>
           </Route>
         </Route>
 

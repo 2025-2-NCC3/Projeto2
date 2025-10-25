@@ -6,6 +6,7 @@ import supabase from '../lib/supabaseClient'
 export default function RequireAuth() {
   const [checking, setChecking] = useState(true)
   const [ok, setOk] = useState(false)
+  const [userRole, setUserRole] = useState(null)
 
   useEffect(() => {
     let mounted = true
@@ -13,14 +14,32 @@ export default function RequireAuth() {
     // checa sessão atual
     supabase.auth.getSession().then(({ data }) => {
       if (!mounted) return
-      setOk(!!data.session)
+      
+      const hasSession = !!data.session
+      setOk(hasSession)
+      
+      if (hasSession && data.session.user) {
+        // Pega a role do user_metadata
+        const role = data.session.user.user_metadata?.role || 'user'
+        setUserRole(role)
+      }
+      
       setChecking(false)
     })
 
     // escuta mudanças de auth
     const { data: sub } = supabase.auth.onAuthStateChange((_event, session) => {
       if (!mounted) return
-      setOk(!!session)
+      
+      const hasSession = !!session
+      setOk(hasSession)
+      
+      if (hasSession && session.user) {
+        const role = session.user.user_metadata?.role || 'user'
+        setUserRole(role)
+      } else {
+        setUserRole(null)
+      }
     })
 
     return () => {
@@ -31,5 +50,5 @@ export default function RequireAuth() {
 
   if (checking) return null // ou um spinner/skeleton aqui
 
-  return ok ? <Outlet /> : <Navigate to="/login" replace />
+  return ok ? <Outlet context={{ userRole }} /> : <Navigate to="/login" replace />
 }

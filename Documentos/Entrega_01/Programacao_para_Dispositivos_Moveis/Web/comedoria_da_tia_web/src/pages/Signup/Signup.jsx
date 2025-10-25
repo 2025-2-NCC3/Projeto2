@@ -1,9 +1,7 @@
 import { useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
-
-// eslint-disable-next-line no-unused-vars
 import { motion } from 'framer-motion'
-import { User, Mail, Lock, ChefHat, ShieldCheck } from 'lucide-react'
+import { User, Mail, Lock, ChefHat } from 'lucide-react'
 import toast, { Toaster } from 'react-hot-toast'
 import Input from '../../components/Input'
 import supabase from '../../lib/supabaseClient'
@@ -27,18 +25,22 @@ export default function Signup() {
       toast.error('Informe seu nome completo ❌')
       return
     }
+
     if (!isValidEmail(email)) {
       toast.error('Informe um e-mail válido ❌')
       return
     }
+
     if (!password || password.length < 6) {
       toast.error('A senha deve ter pelo menos 6 caracteres ❌')
       return
     }
+
     if (password !== confirmPassword) {
       toast.error('As senhas não coincidem ❌')
       return
     }
+
     if (!acceptTerms) {
       toast.error('Você precisa aceitar os termos de uso ❌')
       return
@@ -46,18 +48,39 @@ export default function Signup() {
 
     setIsLoading(true)
     try {
-      const { error } = await supabase.auth.signUp({
+      const { data: authData, error: authError } = await supabase.auth.signUp({
         email,
         password,
         options: {
-          data: { full_name: name },
+          data: { 
+            full_name: name,
+            role: 'user' // Definindo role como 'user' por default
+          },
           emailRedirectTo: typeof window !== 'undefined' ? `${window.location.origin}/login` : undefined,
         },
       })
 
-      if (error) {
-        toast.error(error.message || 'Falha ao criar conta ❌')
+      if (authError) {
+        toast.error(authError.message || 'Falha ao criar conta ❌')
         return
+      }
+
+      // Se você quiser salvar também na tabela profiles (opcional)
+      if (authData.user) {
+        const { error: profileError } = await supabase
+          .from('profiles')
+          .upsert({
+            id: authData.user.id,
+            full_name: name,
+            email: email,
+            role: 'user', // Garantindo a role aqui também
+            created_at: new Date().toISOString(),
+          })
+
+        if (profileError) {
+          console.error('Erro ao criar perfil:', profileError)
+          // Não bloqueia o cadastro se falhar na tabela profiles
+        }
       }
 
       toast.success('Conta criada! Verifique seu e-mail para confirmar ✅')
@@ -92,6 +115,7 @@ export default function Signup() {
             placeholder="Nome completo"
             value={name}
             onChange={(e) => setName(e.target.value)}
+            required
           />
 
           <Input
@@ -100,6 +124,7 @@ export default function Signup() {
             placeholder="E-mail"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
+            required
           />
 
           <Input
@@ -108,6 +133,7 @@ export default function Signup() {
             placeholder="Senha (mín. 6 caracteres)"
             value={password}
             onChange={(e) => setPassword(e.target.value)}
+            required
           />
 
           <Input
@@ -116,6 +142,7 @@ export default function Signup() {
             placeholder="Confirmar senha"
             value={confirmPassword}
             onChange={(e) => setConfirmPassword(e.target.value)}
+            required
           />
 
           <label className="terms">

@@ -134,7 +134,7 @@ export default function Promotion() {
       setSaving(true)
 
       // 🟩 1) Inserir novo preço promocional
-      const payload = { product_id: current.id, price: priceNumber }
+      const payload = { product_id: current.id, price: priceNumber, name: current.name  }
       if (endsAt) payload.ends_at = new Date(`${endsAt}T23:59:59`).toISOString()
 
       const { error: pErr } = await supabase.from('product_prices').insert(payload)
