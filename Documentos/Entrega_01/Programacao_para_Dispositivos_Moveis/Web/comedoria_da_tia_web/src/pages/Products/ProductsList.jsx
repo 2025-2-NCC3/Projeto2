@@ -1,7 +1,6 @@
 // src/pages/Products/ProductsList.jsx
 import { useEffect, useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
-// eslint-disable-next-line no-unused-vars
 import { motion } from 'framer-motion'
 import {
   Search, RefreshCw, PlusCircle, BadgePercent, Package,
@@ -38,24 +37,21 @@ export default function ProductsList() {
     )
   }, [items, q])
 
-  // --- loader com fallback VIEW -> TABELA (cost_estimated como price)
   async function load() {
     setLoading(true)
     try {
-      // 1) Tenta pela VIEW "products_public"
       let prods = []
       try {
         const { data, error } = await supabase
           .from('products_public')
-          .select('id, name, slug, image_url, price, is_active')
+          .select('id, name, slug, image_url, price, is_active, nutrition')
           .order('name', { ascending: true })
         if (error) throw error
         prods = data ?? []
       } catch (_e) {
-        // 1b) Fallback: ler da tabela products e mapear cost_estimated -> price
         const { data, error } = await supabase
           .from('products')
-          .select('id, name, slug, image_url, cost_estimated, is_active')
+          .select('id, name, slug, image_url, cost_estimated, is_active, nutrition')
           .order('name', { ascending: true })
         if (error) throw error
         prods = (data ?? []).map(p => ({ ...p, price: p.cost_estimated }))
@@ -64,33 +60,30 @@ export default function ProductsList() {
       const ids = prods?.map(p => p.id) || []
       if (!ids.length) { setItems([]); setLoading(false); return }
 
-      // 2) vendidos hoje
-      const { data: soldToday, error: e3, status: s3 } = await supabase
+      const { data: soldToday } = await supabase
         .from('sales_daily')
         .select('product_id, qty_sold')
         .eq('day', todayStr())
         .in('product_id', ids)
-      if (e3) { console.error('[SOLD TODAY] status=', s3, e3); throw e3 }
-      const todayMap = new Map(soldToday.map(r => [r.product_id, Number(r.qty_sold)]))
 
-      // 3) vendidos 7d
-      const { data: sold7, error: e4, status: s4 } = await supabase
+      const todayMap = new Map((soldToday ?? []).map(r => [r.product_id, Number(r.qty_sold)]))
+
+      const { data: sold7 } = await supabase
         .from('sales_daily')
         .select('product_id, qty_sold, day')
         .gte('day', daysAgoStr(6))
         .lte('day', todayStr())
         .in('product_id', ids)
-      if (e4) { console.error('[SOLD 7D] status=', s4, e4); throw e4 }
-      const agg7 = new Map()
-      for (const r of sold7) agg7.set(r.product_id, (agg7.get(r.product_id) || 0) + Number(r.qty_sold))
 
-      // 4) estoque atual (opcional)
-      const { data: stocks, error: e5, status: s5 } = await supabase
+      const agg7 = new Map()
+      for (const r of sold7 ?? []) agg7.set(r.product_id, (agg7.get(r.product_id) || 0) + Number(r.qty_sold))
+
+      const { data: stocks } = await supabase
         .from('products')
         .select('id, stock_qty')
         .in('id', ids)
-      if (e5) { console.error('[STOCK] status=', s5, e5); throw e5 }
-      const stockMap = new Map(stocks.map(r => [r.id, Number(r.stock_qty)]))
+
+      const stockMap = new Map((stocks ?? []).map(r => [r.id, Number(r.stock_qty)]))
 
       setItems(prods.map(p => ({
         ...p,
@@ -105,22 +98,18 @@ export default function ProductsList() {
     }
   }
 
-  // 🔒 só carrega quando a sessão existir + reage a login/logout
   useEffect(() => {
     let mounted = true
-
     supabase.auth.getSession().then(({ data }) => {
       if (!mounted) return
       if (data.session) load()
-      else setLoading(false) // RequireAuth deve redirecionar
+      else setLoading(false)
     })
-
     const { data: sub } = supabase.auth.onAuthStateChange((_event, session) => {
       if (!mounted) return
       if (session) load()
       else { setItems([]); setLoading(false) }
     })
-
     return () => {
       mounted = false
       sub?.subscription?.unsubscribe?.()
@@ -133,14 +122,11 @@ export default function ProductsList() {
     try {
       const curr = items.find(i => i.id === productId)
       const newQty = Math.max(0, (curr?.stock_qty || 0) + delta)
-      const { error, status } = await supabase
+      const { error } = await supabase
         .from('products')
         .update({ stock_qty: newQty })
         .eq('id', productId)
-      if (error) {
-        console.error('[UPDATE STOCK] status=', status, error)
-        throw error
-      }
+      if (error) throw error
       setItems(prev => prev.map(i => i.id === productId ? { ...i, stock_qty: newQty } : i))
       notify({ type: 'success', title: 'Estoque atualizado', message: `Novo estoque: ${newQty}` })
     } catch (err) {
@@ -148,7 +134,6 @@ export default function ProductsList() {
     }
   }
 
-  // ===== Promoção =====
   const [promoOpen, setPromoOpen] = useState(false)
   const [promoProd, setPromoProd] = useState(null)
   const [promoPrice, setPromoPrice] = useState('')
@@ -169,8 +154,8 @@ export default function ProductsList() {
       const payload = { product_id: promoProd.id, price: priceNumber }
       if (promoEndsAt) payload.ends_at = new Date(`${promoEndsAt}T23:59:59`).toISOString()
 
-      const { error, status } = await supabase.from('product_prices').insert(payload)
-      if (error) { console.error('[PROMO] status=', status, error); throw error }
+      const { error } = await supabase.from('product_prices').insert(payload)
+      if (error) throw error
 
       setItems(prev => prev.map(i => i.id === promoProd.id ? { ...i, price: priceNumber } : i))
       notify({ type: 'success', title: 'Promoção lançada', message: 'Preço atualizado com sucesso.' })
@@ -183,7 +168,6 @@ export default function ProductsList() {
   return (
     <div className="plist-page">
       <NotifierHost />
-
       <div className="plist-topbar">
         <div className="plist-title"><Package /> <h1>Produtos</h1></div>
         <div className="plist-actions">
@@ -222,6 +206,17 @@ export default function ProductsList() {
                   <span className="pill">{p.slug}</span>
                   <span className="pill">{fmtMoney(p.price)}</span>
                 </div>
+
+                {p.nutrition && (
+                  <div className="plist-nutrition">
+                    <h4>Informações nutricionais:</h4>
+                    <ul>
+                      {Object.entries(p.nutrition).map(([key, value]) => (
+                        <li key={key}><strong>{key}:</strong> {value}</li>
+                      ))}
+                    </ul>
+                  </div>
+                )}
 
                 <div className="plist-kpis">
                   <div className="kpi">
