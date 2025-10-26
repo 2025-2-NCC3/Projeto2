@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="280dp"
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    android:padding="24dp"
+    android:background="@drawable/dialog_background"
+    android:gravity="center">
+
+    <TextView
+        android:id="@+id/txtTitulo"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="@string/produto_pronto"
+        android:textSize="18sp"
+        android:textStyle="bold"
+        android:gravity="center"
+        android:layout_marginBottom="12dp"/>
+
+    <TextView
+        android:id="@+id/txtMensagem"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="@string/seu_pedido_est_dispon_vel_para_retirada_no_balc_o"
+        android:textSize="14sp"
+        android:gravity="center"
+        android:layout_marginBottom="20dp"
+        android:lineSpacingExtra="4dp"/>
+
+    <Button
+        android:id="@+id/btnOk"
+        android:layout_width="120dp"
+        android:layout_height="45dp"
+        android:text="@string/ok"
+        android:textSize="14sp"
+        android:background="@drawable/button_primary"
+        android:textColor="@color/white"/>
+
+</LinearLayout>
