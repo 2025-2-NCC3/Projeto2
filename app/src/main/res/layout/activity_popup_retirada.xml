@@ -30,7 +30,7 @@
     <Button
         android:id="@+id/btnOk"
         android:layout_width="120dp"
-        android:layout_height="45dp"
+        android:layout_height="48dp"
         android:text="@string/ok"
         android:textSize="14sp"
         android:background="@drawable/button_primary"
