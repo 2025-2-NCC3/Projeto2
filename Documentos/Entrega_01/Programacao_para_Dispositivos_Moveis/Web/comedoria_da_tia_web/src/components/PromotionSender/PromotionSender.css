@@ -75,3 +75,14 @@
     opacity: 1;
   }
 }
+
+.user-count-info {
+  margin-top: 8px;
+  text-align: center;
+  color: #6b7280;
+  font-size: 12px;
+}
+
+.user-count-info small {
+  opacity: 0.8;
+}

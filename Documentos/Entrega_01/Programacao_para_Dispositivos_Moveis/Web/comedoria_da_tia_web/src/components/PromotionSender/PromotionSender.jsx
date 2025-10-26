@@ -1,13 +1,11 @@
 import { useState } from 'react'
-import { Send, Loader } from 'lucide-react'
+import { Send, Loader, Users } from 'lucide-react'
 import supabase from '../../lib/supabaseClient'
 import './PromotionSender.css'
 
 export default function PromotionSender({ promotion }) {
   const [sending, setSending] = useState(false)
   const [result, setResult] = useState(null)
-
-  const YOUR_EMAIL = "brenocostanascimento031@gmail.com"
 
   const sendPromotionEmails = async () => {
     if (!promotion) {
@@ -19,7 +17,27 @@ export default function PromotionSender({ promotion }) {
     setResult(null)
 
     try {
-      const emails = [YOUR_EMAIL]
+      // ✅ 1. BUSCAR TODOS OS EMAILS DA TABELA PROFILES
+      const { data: profiles, error: profilesError } = await supabase
+        .from('profiles')
+        .select('email, full_name')
+        .eq('is_active', true) // Apenas usuários ativos
+        .not('email', 'is', null) // Apenas emails válidos
+
+      if (profilesError) {
+        throw new Error(`Erro ao buscar emails: ${profilesError.message}`)
+      }
+
+      if (!profiles || profiles.length === 0) {
+        throw new Error('Nenhum usuário encontrado para enviar promoção')
+      }
+
+      // ✅ 2. EXTRAIR APENAS OS EMAILS
+      const emails = profiles.map(profile => profile.email).filter(email => email)
+      
+      console.log(`📧 Enviando para ${emails.length} usuários:`, emails)
+
+      // ✅ 3. CHAMAR A EDGE FUNCTION
       const { data: { session } } = await supabase.auth.getSession()
       
       const response = await fetch(
@@ -50,14 +68,14 @@ export default function PromotionSender({ promotion }) {
 
       setResult({ 
         success: true, 
-        message: `✅ Email enviado!` 
+        message: `✅ Promoção enviada para ${emails.length} usuários!` 
       })
 
     } catch (error) {
       console.error('Erro ao enviar promoção:', error)
       setResult({ 
         success: false, 
-        message: `❌ Erro ao enviar` 
+        message: `❌ ${error.message}` 
       })
     } finally {
       setSending(false)
@@ -70,7 +88,7 @@ export default function PromotionSender({ promotion }) {
         onClick={sendPromotionEmails}
         disabled={sending || !promotion}
         className="send-button-simple"
-        title={!promotion ? "Selecione uma promoção primeiro" : "Enviar email de teste"}
+        title={!promotion ? "Selecione uma promoção primeiro" : `Enviar promoção para todos os usuários`}
       >
         {sending ? (
           <>
@@ -79,8 +97,8 @@ export default function PromotionSender({ promotion }) {
           </>
         ) : (
           <>
-            <Send size={16} />
-            Enviar Promoção
+            <Users size={16} />
+            Enviar para Todos
           </>
         )}
       </button>
@@ -90,6 +108,13 @@ export default function PromotionSender({ promotion }) {
           {result.message}
         </div>
       )}
+
+      {/* ✅ INFO: Mostrar quantos usuários serão atingidos */}
+      <div className="user-count-info">
+        <small>
+          📊 Esta ação enviará a promoção para todos os usuários ativos cadastrados
+        </small>
+      </div>
     </div>
   )
 }
