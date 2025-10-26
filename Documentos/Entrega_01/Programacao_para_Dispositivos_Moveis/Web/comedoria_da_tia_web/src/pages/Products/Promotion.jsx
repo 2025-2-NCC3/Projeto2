@@ -6,6 +6,7 @@ import { BadgePercent, ArrowLeft, PackageSearch, Coins, Info } from 'lucide-reac
 import supabase from '../../lib/supabaseClient'
 import { useNotifier } from '../../components/Notifier/useNotifier'
 import './Promotion.css'
+import PromotionSender from '../../components/PromotionSender/PromotionSender'
 
 /* =====================================
    Utils
@@ -282,6 +283,8 @@ export default function Promotion() {
         <div className="prom-title">
           <BadgePercent /> <h1>Promoções</h1>
         </div>
+
+        <PromotionSender promotion={current}/>
 
         <div className="prom-actions">
           <Link className="btn-outline" to="/app/produtos">

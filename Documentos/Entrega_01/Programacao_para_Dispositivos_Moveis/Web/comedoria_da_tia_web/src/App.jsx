@@ -10,6 +10,7 @@ import ResetPassword from './pages/ResetPassword/ResetPassword'
 import ProductNew from './pages/Products/ProductNew'
 import ProductsList from './pages/Products/ProductsList'
 import Promotion from './pages/Products/Promotion'
+import Relatorios from './pages/Relatorios/Relatorios'
 
 // layout + guards
 import AppLayout from './layouts/layouts'
@@ -45,6 +46,7 @@ function App() {
               <Route path="produtos" element={<ProductsList />} />
               <Route path="produtos/novo" element={<ProductNew />} />
               <Route path="produtos/promocao" element={<Promotion />} />
+              <Route path="/app/relatorios" element={<Relatorios/>} />
             </Route>
           </Route>
         </Route>

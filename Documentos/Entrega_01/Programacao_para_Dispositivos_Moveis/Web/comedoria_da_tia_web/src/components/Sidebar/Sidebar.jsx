@@ -111,7 +111,6 @@ export default function Sidebar() {
           icon={<BarChart3 size={18} />}
           label="Relatórios"
           collapsed={collapsed}
-          disabled
         />
 
         <Section label="Sistema" collapsed={collapsed} />
