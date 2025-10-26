@@ -15,7 +15,7 @@ public class PopupRetiradaActivity extends AppCompatActivity {
         setContentView(R.layout.activity_popup_retirada);
         mostrarPopupRetirada();
     }
-
+//correção
     private void mostrarPopupRetirada() {
         AlertDialog.Builder builder = new AlertDialog.Builder(this);
         builder.setTitle("📦 Produto Pronto")
