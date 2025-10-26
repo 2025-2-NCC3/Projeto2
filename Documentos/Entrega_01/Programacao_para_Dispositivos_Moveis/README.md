@@ -127,5 +127,3 @@ A aplicação ficará disponível em `http://localhost:5173`.
 * ✅ Aplicativo Android configurado
 * ✅ Sistema Web integrado com Supabase
 * 🚧 Implementação de novas telas em andamento
-
----
