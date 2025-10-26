@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { motion } from 'framer-motion'
-import { User, Mail, Lock, ChefHat } from 'lucide-react'
+import { User, Mail, Lock, ChefHat, BookOpen } from 'lucide-react'
 import toast, { Toaster } from 'react-hot-toast'
 import Input from '../../components/Input'
 import supabase from '../../lib/supabaseClient'
@@ -11,12 +11,80 @@ export default function Signup() {
   const navigate = useNavigate()
   const [name, setName] = useState('')
   const [email, setEmail] = useState('')
+  const [ra, setRa] = useState('') // ✅ NOVO CAMPO
   const [password, setPassword] = useState('')
   const [confirmPassword, setConfirmPassword] = useState('')
   const [acceptTerms, setAcceptTerms] = useState(true)
   const [isLoading, setIsLoading] = useState(false)
 
   const isValidEmail = (val) => /\S+@\S+\.\S+/.test(val)
+  const isValidRA = (val) => /^[0-9]{6,20}$/.test(val) // ✅ VALIDAÇÃO DO RA
+
+  // ✅ FUNÇÃO DE FALLBACK ATUALIZADA COM RA
+  const ensureUserProfile = async (user) => {
+    try {
+      // Tentativa 1: Verificar se profile já existe
+      const { data: existingProfile, error: checkError } = await supabase
+        .from('profiles')
+        .select('id')
+        .eq('id', user.id)
+        .single()
+
+      if (existingProfile) {
+        console.log('✅ Profile já existe')
+        return { success: true, method: 'existing' }
+      }
+
+      // Tentativa 2: Criar profile com dados completos (INCLUINDO RA)
+      const profileData = {
+        id: user.id,
+        full_name: name.trim(),
+        email: email.toLowerCase(),
+        ra: ra.trim(), // ✅ INCLUINDO RA
+        role: 'user',
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString()
+      }
+
+      const { data: newProfile, error: insertError } = await supabase
+        .from('profiles')
+        .insert(profileData)
+        .select()
+        .single()
+
+      if (insertError) {
+        console.warn('❌ Tentativa 2 falhou:', insertError)
+        
+        // Tentativa 3: Criar profile com dados mínimos (INCLUINDO RA)
+        const minimalProfileData = {
+          id: user.id,
+          email: email.toLowerCase(),
+          ra: ra.trim(), // ✅ INCLUINDO RA MESMO NO FALLBACK
+          role: 'user',
+          created_at: new Date().toISOString()
+        }
+
+        const { error: minimalError } = await supabase
+          .from('profiles')
+          .insert(minimalProfileData)
+
+        if (minimalError) {
+          console.error('❌ Todas as tentativas de criar profile falharam:', minimalError)
+          return { success: false, error: minimalError }
+        }
+
+        console.log('✅ Profile criado com dados mínimos (fallback)')
+        return { success: true, method: 'minimal_fallback' }
+      }
+
+      console.log('✅ Profile criado com sucesso')
+      return { success: true, method: 'created' }
+
+    } catch (error) {
+      console.error('💥 Erro inesperado no ensureUserProfile:', error)
+      return { success: false, error }
+    }
+  }
 
   async function handleSubmit(e) {
     e.preventDefault()
@@ -28,6 +96,12 @@ export default function Signup() {
 
     if (!isValidEmail(email)) {
       toast.error('Informe um e-mail válido ❌')
+      return
+    }
+
+    // ✅ VALIDAÇÃO DO RA
+    if (!isValidRA(ra)) {
+      toast.error('Informe um RA válido (apenas números, 6-20 dígitos) ❌')
       return
     }
 
@@ -47,14 +121,16 @@ export default function Signup() {
     }
 
     setIsLoading(true)
+    
     try {
+      // 1. Criar usuário no Auth
       const { data: authData, error: authError } = await supabase.auth.signUp({
-        email,
+        email: email.toLowerCase(),
         password,
         options: {
           data: { 
-            full_name: name,
-            role: 'user' // Definindo role como 'user' por default
+            full_name: name.trim(),
+            role: 'user'
           },
           emailRedirectTo: typeof window !== 'undefined' ? `${window.location.origin}/login` : undefined,
         },
@@ -65,27 +141,23 @@ export default function Signup() {
         return
       }
 
-      // Se você quiser salvar também na tabela profiles (opcional)
+      // 2. ✅ FALLBACK: Garantir que profile existe (AGORA COM RA)
       if (authData.user) {
-        const { error: profileError } = await supabase
-          .from('profiles')
-          .upsert({
-            id: authData.user.id,
-            full_name: name,
-            email: email,
-            role: 'user', // Garantindo a role aqui também
-            created_at: new Date().toISOString(),
-          })
-
-        if (profileError) {
-          console.error('Erro ao criar perfil:', profileError)
-          // Não bloqueia o cadastro se falhar na tabela profiles
+        const profileResult = await ensureUserProfile(authData.user)
+        
+        if (!profileResult.success) {
+          console.warn('⚠️ Profile não pôde ser criado, mas usuário foi registrado')
+          // Não bloqueia o cadastro - usuário pode completar profile depois
         }
       }
 
       toast.success('Conta criada! Verifique seu e-mail para confirmar ✅')
-      setTimeout(() => navigate('/login', { replace: true }), 800)
-    } catch {
+      
+      // Redirecionar após sucesso
+      setTimeout(() => navigate('/login', { replace: true }), 1500)
+      
+    } catch (error) {
+      console.error('Erro no signup:', error)
       toast.error('Ocorreu um erro inesperado ❌')
     } finally {
       setIsLoading(false)
@@ -124,6 +196,16 @@ export default function Signup() {
             placeholder="E-mail"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
+            required
+          />
+
+          {/* ✅ NOVO CAMPO RA */}
+          <Input
+            icon={BookOpen}
+            type="text"
+            placeholder="RA (apenas números)"
+            value={ra}
+            onChange={(e) => setRa(e.target.value.replace(/\D/g, ''))} // Remove não-números
             required
           />
 
