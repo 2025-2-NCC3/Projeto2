@@ -74,6 +74,10 @@
         <activity android:name=".OffersActivity"
             android:exported="false"
             android:theme="@style/Theme.AplicativoComedoriaDaTia"/>
+        <activity
+            android:name=".PaymentActivity"
+            android:exported="false"
+            />
 
         <activity android:name=".AllProductsActivity"
             android:exported="false"
