@@ -224,6 +224,10 @@ public class HomeActivity extends AppCompatActivity {
         if (navInicio == null || navPedidos == null || navOfertas == null || navPerfil == null) return;
 
         View.OnClickListener listener = v -> {
+            // Animação de clique
+            v.animate().scaleX(0.95f).scaleY(0.95f).setDuration(80)
+                    .withEndAction(() -> v.animate().scaleX(1f).scaleY(1f).setDuration(80).start());
+
             setSelectedTab(v.getId());
             if (v.getId() == R.id.nav_inicio) {
                 if (etSearch != null) etSearch.setText("");
@@ -236,7 +240,8 @@ public class HomeActivity extends AppCompatActivity {
                 // agora abre a OffersActivity de verdade
                 startActivity(new Intent(this, OffersActivity.class));
             } else if (v.getId() == R.id.nav_perfil) {
-                Toast.makeText(this, "Perfil (em breve)", Toast.LENGTH_SHORT).show();
+                // ✅ ATUALIZADO: Agora vai para ProfileActivity
+                openProfileActivity();
             }
         };
 
@@ -245,6 +250,21 @@ public class HomeActivity extends AppCompatActivity {
         navOfertas.setOnClickListener(listener);
         navPerfil.setOnClickListener(listener);
         setSelectedTab(R.id.nav_inicio);
+    }
+
+    private void openProfileActivity() {
+        SessionManager session = new SessionManager(this);
+
+        // Verifica se usuário está logado
+        if (!session.isLoggedIn()) {
+            Toast.makeText(this, "Faça login para acessar seu perfil", Toast.LENGTH_SHORT).show();
+            startActivity(new Intent(this, LoginActivity.class));
+            return;
+        }
+
+        Intent intent = new Intent(this, ProfileActivity.class);
+        startActivity(intent);
+
     }
 
     private void setSelectedTab(int viewId) {
@@ -473,8 +493,8 @@ public class HomeActivity extends AppCompatActivity {
 
     // ===== Chips Controller interno =====
     // =====================================================================
-// Controller de Chips (interno)
-// =====================================================================
+    // Controller de Chips (interno)
+    // =====================================================================
     private static final class FilterChipsController {
 
         interface OnFilterSelected { void onFilter(String category); }
@@ -593,5 +613,4 @@ public class HomeActivity extends AppCompatActivity {
             return Math.round(v * ctx.getResources().getDisplayMetrics().density);
         }
     }
-
 }

@@ -8,8 +8,6 @@ import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.app.AppCompatDelegate;
-// Remova EdgeToEdge se sua lib estiver desatualizada para evitar NoSuchMethodError
-// import androidx.activity.EdgeToEdge;
 
 import com.google.android.material.button.MaterialButton;
 import com.google.android.material.textfield.TextInputEditText;
@@ -107,7 +105,20 @@ public class LoginActivity extends AppCompatActivity {
                 SupabaseAuthService.AuthResponse resp = supabase.signInWithPassword(email, password);
 
                 if (resp != null && resp.isValid()) {
-                    session.save(resp.accessToken, resp.refreshToken, email);
+                    // ✅ ATUALIZADO: Salva user_id e nome
+                    String userId = resp.user != null ? resp.user.id : null;
+                    String userName = email.split("@")[0]; // Nome básico do email
+
+                    // Usa o novo método que salva user_id
+                    session.saveUserSession(
+                            resp.accessToken,
+                            resp.refreshToken,
+                            email,
+                            userName,
+                            userId,
+                            null // avatarUrl pode ser null por enquanto
+                    );
+
                     runOnUiThread(() -> {
                         toast("Login realizado com sucesso!");
                         // NAVEGA PARA HOME (limpando a pilha)
@@ -122,7 +133,12 @@ public class LoginActivity extends AppCompatActivity {
 
             } catch (Exception e) {
                 // Qualquer exceção aqui não derruba o app
-                failUi("Erro no login: " + e.getMessage());
+                String errorMsg = e.getMessage();
+                if (errorMsg != null && errorMsg.contains("Invalid login credentials")) {
+                    failUi("E-mail ou senha incorretos.");
+                } else {
+                    failUi("Erro no login: " + errorMsg);
+                }
             } finally {
                 runOnUiThread(() -> setLoading(false));
             }

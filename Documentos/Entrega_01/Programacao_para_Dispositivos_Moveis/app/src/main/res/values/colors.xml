@@ -10,13 +10,15 @@
     <color name="emerald_500">#10B981</color>
     <color name="emerald_600">#059669</color>
     <color name="emerald_200">#A7F3D0</color>
-
+    <color name="green_500">#4CAF50</color>
+    <color name="text_muted1">#666666</color>
     <!-- Cinzas para o modo claro -->
     <color name="gray_900">#111827</color>
     <color name="gray_800">#1F2937</color>
     <color name="gray_600">#757575</color>
     <color name="gray_500">#9E9E9E</color>
-    <color name="gray_400">#9CA3AF</color>
+    <color name="red_500">#F44336</color>
+    <color name="gray_400">#BDBDBD</color>
     <color name="gray_200">#E5E7EB</color>
     <color name="gray_100">#F3F4F6</color>
 

@@ -46,6 +46,15 @@
         android:exported="true"
         android:theme="@style/Theme.AplicativoComedoriaDaTia" />
 
+        <activity
+            android:name=".FavoritesActivity"
+            android:label="Meus Favoritos"
+            android:theme="@style/Theme.AppCompat.Light.NoActionBar" />
+
+        <activity
+            android:name=".ProfileActivity"
+            android:label="Perfil"
+            android:theme="@style/Theme.AppCompat.Light.NoActionBar" />
     <activity
         android:name=".SignupActivity"
         android:exported="true"
