@@ -1,9 +1,11 @@
 package com.example.aplicativocomedoriadatia;
 
-public class Pedido {
-    public String nomeAluno;
-    public String itemPedido;
-    public String status;
+import java.io.Serializable;
+
+public class Pedido implements Serializable {
+    private String nomeAluno;
+    private String itemPedido;
+    private String status;
 
     public Pedido(String nomeAluno, String itemPedido) {
         this.nomeAluno = nomeAluno;

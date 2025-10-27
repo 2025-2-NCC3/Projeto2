@@ -1,3 +1,6 @@
+package com.example.aplicativocomedoriadatia.ui;
+
+
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -5,7 +8,9 @@ import android.widget.TextView;
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 
+
 import com.example.aplicativocomedoriadatia.Pedido;
+import com.example.aplicativocomedoriadatia.R;
 
 import java.util.List;
 

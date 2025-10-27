@@ -1,5 +1,6 @@
 package com.example.aplicativocomedoriadatia;
 
+import android.content.Intent;
 import android.os.Bundle;
 import android.widget.ArrayAdapter;
 import android.widget.ListView;
@@ -20,6 +21,8 @@ public class BalcaoActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_balcao); //
 
+        NavbarHelper.setup(this);
+
         ListView listView = findViewById(R.id.listPedidos); //
 
         // Pedidos de exemplo
@@ -33,12 +36,10 @@ public class BalcaoActivity extends AppCompatActivity {
 
         listView.setOnItemClickListener((parent, view, position, id) -> {
             Pedido pedido = pedidos.get(position);
-            if (pedido.getStatus().equals("Recebido ✅")) {
-                pedido.setStatus("Preparando");
-            } else if (pedido.getStatus().equals("Preparando")) {
-                pedido.setStatus("Pronto");
-            }
-            atualizarLista();
+
+            Intent intent = new Intent(BalcaoActivity.this, AlunoActivity.class);
+            intent.putExtra("pedido", pedido);
+            startActivity(intent);
         });
     }
 

@@ -40,6 +40,8 @@ public class AllProductsActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_allproducts);
 
+        NavbarHelper.setup(this);
+
         // Bind dos elementos
         recycler = findViewById(R.id.recyclerProducts);
         shimmer = findViewById(R.id.shimmerContainer);

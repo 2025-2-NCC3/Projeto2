@@ -19,6 +19,7 @@ import java.util.List;
 
 public class CartActivity extends AppCompatActivity implements CartAdapter.CartActions {
 
+    //arrumado
     private RecyclerView recycler;
     private TextView tvTotal;
     private Button btnCheckout, btnContinue;
@@ -30,7 +31,7 @@ public class CartActivity extends AppCompatActivity implements CartAdapter.CartA
         setContentView(R.layout.activity_cart);
 
         recycler = findViewById(R.id.recyclerCart);
-        tvTotal  = findViewById(R.id.tvTotal);
+        tvTotal = findViewById(R.id.tvTotal);
         btnCheckout = findViewById(R.id.btnCheckout);
         btnContinue = findViewById(R.id.btnContinue);
 
@@ -42,8 +43,12 @@ public class CartActivity extends AppCompatActivity implements CartAdapter.CartA
             if (adapter.getItemCount() == 0) {
                 Toast.makeText(this, "Carrinho vazio.", Toast.LENGTH_SHORT).show();
             } else {
-                // aqui vocÃª integra com sua tela/fluxo de pagamento
-                Toast.makeText(this, "Finalizando compra...", Toast.LENGTH_SHORT).show();
+                String totalText = tvTotal.getText().toString();
+                double totalValue = extractValueFromText(totalText);
+
+                Intent intent = new Intent(CartActivity.this, PaymentActivity.class);
+                intent.putExtra("total_amount", totalValue);
+                startActivity(intent);
             }
         });
 
@@ -61,6 +66,16 @@ public class CartActivity extends AppCompatActivity implements CartAdapter.CartA
         double cost_estimated = it.getDoubleExtra("price", 0.0);
         boolean isOffer = it.getBooleanExtra("is_offer", false);
         String endsAt = it.getStringExtra("ends_at");
+    }
+
+    private double extractValueFromText(String text) {
+        try {
+            // Remove "R$", espaços e substitui vírgula por ponto
+            String cleanText = text.replace("R$", "").replace(",", ".").trim();
+            return Double.parseDouble(cleanText);
+        } catch (NumberFormatException e) {
+            return 0.0;
+        }
     }
 
     @Override

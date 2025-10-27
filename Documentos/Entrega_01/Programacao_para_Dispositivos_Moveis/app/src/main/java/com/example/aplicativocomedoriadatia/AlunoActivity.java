@@ -7,6 +7,8 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
+import com.example.aplicativocomedoriadatia.ui.StatusAdapter;
+
 public class AlunoActivity extends AppCompatActivity {
 
     private RecyclerView recyclerStatus;
@@ -18,16 +20,18 @@ public class AlunoActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_aluno);
 
+        NavbarHelper.setup(this);
+
         recyclerStatus = findViewById(R.id.recyclerStatus);
         recyclerStatus.setLayoutManager(new LinearLayoutManager(this));
 
         tvNomePedido = findViewById(R.id.tvNomePedido);
 
-        // aqui cria um pedido de ex (pode ser subs. depois por dados reais)
-        pedido = new Pedido("João", "Hambúrguer");
+        pedido = (Pedido) getIntent().getSerializableExtra("pedido");
 
-        // mostra o nome do aluno no topo
-        tvNomePedido.setText("Pedido de: " + pedido.getNomeAluno());
+        if (pedido != null) {
+            tvNomePedido.setText("Pedido de: " + pedido.getNomeAluno());
+        }
 
         atualizarLinhaDoTempo();
     }

@@ -71,11 +71,31 @@
             android:theme="@style/Theme.AplicativoComedoriaDaTia" />
 
         <activity android:name=".OffersActivity"
-            android:exported="false"
+            android:exported="true"
             android:theme="@style/Theme.AplicativoComedoriaDaTia"/>
 
         <activity android:name=".AllProductsActivity"
             android:exported="false"
+            android:theme="@style/Theme.AplicativoComedoriaDaTia"/>
+
+        <activity android:name=".PaymentActivity"
+            android:exported="false"
+            android:theme="@style/Theme.AplicativoComedoriaDaTia"/>
+
+        <activity android:name=".QrCodeActivity"
+            android:exported="false"
+            android:theme="@style/Theme.AplicativoComedoriaDaTia"/>
+
+        <activity android:name=".ProfileActivity"
+            android:exported="false"
+            android:theme="@style/Theme.AplicativoComedoriaDaTia"/>
+
+        <activity android:name=".BalcaoActivity"
+            android:exported="true"
+            android:theme="@style/Theme.AplicativoComedoriaDaTia"/>
+
+        <activity android:name=".AlunoActivity"
+            android:exported="true"
             android:theme="@style/Theme.AplicativoComedoriaDaTia"/>
 
         <service

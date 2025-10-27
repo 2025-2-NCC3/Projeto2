@@ -15,9 +15,6 @@
     <style name="ShapeAppearanceOverlay.App.Rounded28">
         <item name="cornerFamily">rounded</item>
         <item name="cornerSize">28dp</item>
-        <!-- Para pill perfeito:
-        <item name="cornerSize">50%</item>
-        -->
     </style>
 
     <!-- Botões base -->
@@ -41,10 +38,8 @@
         <item name="android:insetBottom">0dp</item>
     </style>
 
-    <!-- Alias: Outline (compatível com seu layout) -->
     <style name="Widget.App.RoundedButton.Outline" parent="Widget.App.RoundedButton.Outlined" />
 
-    <!-- Verdes -->
     <style name="Widget.App.RoundedButton.GreenFilled" parent="Widget.App.RoundedButton.Filled">
         <item name="backgroundTint">@color/green</item>
         <item name="android:textColor">@color/white</item>
@@ -60,7 +55,21 @@
         <item name="rippleColor">@color/green</item>
     </style>
 
-    <!-- Cartão do login - agora branco com borda sutil -->
+    <!-- Botão vermelho arredondado -->
+    <style name="Widget.App.RoundedButton.RedFilled" parent="Widget.App.RoundedButton.Filled">
+        <item name="backgroundTint">@color/red_500</item>
+        <item name="android:textColor">@color/white</item>
+        <item name="iconTint">@color/white</item>
+        <item name="rippleColor">@color/red_500</item>
+    </style>
+
+    <!-- Aparência com cantos pequenos -->
+    <style name="ShapeAppearanceOverlay.App.Corner.small" parent="">
+        <item name="cornerFamily">rounded</item>
+        <item name="cornerSize">8dp</item>
+    </style>
+
+    <!-- Cartão do login -->
     <style name="Widget.App.LoginCard" parent="Widget.Material3.CardView.Elevated">
         <item name="android:background">@color/card_glass</item>
         <item name="cardForegroundColor">@android:color/transparent</item>

@@ -21,12 +21,12 @@ public class NavbarHelper {
             int id = v.getId();
             if (id == R.id.nav_inicio && !(activity instanceof HomeActivity)) {
                 activity.startActivity(new Intent(activity, HomeActivity.class));
-            } else if (id == R.id.nav_pedidos) {
-                Toast.makeText(activity, "Pedidos (em breve)", Toast.LENGTH_SHORT).show();
+            } else if (id == R.id.nav_pedidos && !(activity instanceof BalcaoActivity)) {
+                activity.startActivity(new Intent(activity, BalcaoActivity.class));
             } else if (id == R.id.nav_ofertas && !(activity instanceof OffersActivity)) {
                 activity.startActivity(new Intent(activity, OffersActivity.class));
-            } else if (id == R.id.nav_perfil) {
-                Toast.makeText(activity, "Perfil (em breve)", Toast.LENGTH_SHORT).show();
+            } else if (id == R.id.nav_perfil && !(activity instanceof ProfileActivity)) {
+                activity.startActivity(new Intent(activity, ProfileActivity.class));
             }
         };
 
@@ -44,6 +44,15 @@ public class NavbarHelper {
         if (activity instanceof OffersActivity) {
             selectedId = R.id.nav_ofertas;
         }
+
+        if (activity instanceof BalcaoActivity) {
+            selectedId = R.id.nav_pedidos;
+        }
+
+        if (activity instanceof ProfileActivity) {
+            selectedId = R.id.nav_perfil;
+        }
+
 
         for (View nav : navs) {
             nav.setSelected(nav.getId() == selectedId);
