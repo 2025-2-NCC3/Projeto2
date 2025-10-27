@@ -207,7 +207,7 @@ export default function ProductNew() {
         finalImageUrl = item?.image_url || item?.thumb_url || null;
       }
 
-      // ✅ APENAS SALVAR NA TABELA PRODUCTS (NÃO SALVA EM PRODUCT_PRICES)
+      // ✅ SALVAR NA TABELA PRODUCTS COM PREÇO NO cost_estimated
       const { data: prod, error: pErr } = await supabase
         .from("products")
         .insert({
@@ -218,7 +218,8 @@ export default function ProductNew() {
           features: featuresObj,
           nutrition: nutritionObj,
           is_active: true,
-          cost_estimated: costNumber, // ✅ Pode ser null
+          // ✅ PREÇO VAI PARA cost_estimated
+          cost_estimated: priceNumber, 
         })
         .select("id, slug")
         .single();
@@ -403,7 +404,7 @@ export default function ProductNew() {
                   value={price}
                   onChange={(e) => setPrice(e.target.value)}
                 />
-                <small>Preço de venda ao público</small>
+                <small>Preço de venda ao público (vai para cost_estimated)</small>
               </label>
               <label className="pnew-label">
                 <span>Custo estimado (R$) - Opcional</span>
@@ -413,7 +414,7 @@ export default function ProductNew() {
                   value={costEstimated}
                   onChange={(e) => setCostEstimated(e.target.value)}
                 />
-                <small>Para controle interno</small>
+                <small>Para controle interno (custo real de produção)</small>
               </label>
             </div>
 
