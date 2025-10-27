@@ -1,6 +1,6 @@
-// app/src/main/java/com/example/aplicativocomedoriadatia/CartActivity.java
 package com.example.aplicativocomedoriadatia;
 
+import android.content.Intent;
 import android.os.Bundle;
 import android.widget.Button;
 import android.widget.TextView;
@@ -21,7 +21,7 @@ public class CartActivity extends AppCompatActivity implements CartAdapter.CartA
 
     private RecyclerView recycler;
     private TextView tvTotal;
-    private Button btnCheckout, btnClear;
+    private Button btnCheckout, btnContinue;
     private CartAdapter adapter;
 
     @Override
@@ -32,7 +32,7 @@ public class CartActivity extends AppCompatActivity implements CartAdapter.CartA
         recycler = findViewById(R.id.recyclerCart);
         tvTotal  = findViewById(R.id.tvTotal);
         btnCheckout = findViewById(R.id.btnCheckout);
-        btnClear    = findViewById(R.id.btnClear);
+        btnContinue = findViewById(R.id.btnContinue);
 
         adapter = new CartAdapter(this);
         recycler.setLayoutManager(new LinearLayoutManager(this));
@@ -42,16 +42,25 @@ public class CartActivity extends AppCompatActivity implements CartAdapter.CartA
             if (adapter.getItemCount() == 0) {
                 Toast.makeText(this, "Carrinho vazio.", Toast.LENGTH_SHORT).show();
             } else {
-                // aqui você integra com sua tela/fluxo de pagamento
+                // aqui vocÃª integra com sua tela/fluxo de pagamento
                 Toast.makeText(this, "Finalizando compra...", Toast.LENGTH_SHORT).show();
             }
         });
 
-        btnClear.setOnClickListener(v -> {
-            CartManager.with(getApplicationContext()).clear();
-            loadData();
-            Toast.makeText(this, "Carrinho limpo.", Toast.LENGTH_SHORT).show();
+        btnContinue.setOnClickListener(v -> {
+            Intent it = new Intent(CartActivity.this, HomeActivity.class);
+            startActivity(it);
         });
+
+        Intent it = getIntent();
+
+        String name = it.getStringExtra("name");
+        String desc = it.getStringExtra("description");
+        String image = it.getStringExtra("image_url");
+        double price = it.getDoubleExtra("price", 0.0);
+        double cost_estimated = it.getDoubleExtra("price", 0.0);
+        boolean isOffer = it.getBooleanExtra("is_offer", false);
+        String endsAt = it.getStringExtra("ends_at");
     }
 
     @Override

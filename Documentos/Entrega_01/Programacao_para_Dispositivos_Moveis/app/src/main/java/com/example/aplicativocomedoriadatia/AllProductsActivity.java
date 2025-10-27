@@ -117,7 +117,7 @@ public class AllProductsActivity extends AppCompatActivity {
 
         Intent it = new Intent(this, ProductDetailsActivity.class);
         it.putExtra("product", product);
-        it.putExtra("price", product.cost_estimated);
+        it.putExtra("price", product.price);
         it.putExtra("is_offer", false);
         startActivity(it);
     }

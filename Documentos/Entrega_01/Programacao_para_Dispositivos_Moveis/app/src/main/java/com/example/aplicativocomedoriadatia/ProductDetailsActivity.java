@@ -1,8 +1,10 @@
 package com.example.aplicativocomedoriadatia;
 
+import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.os.Bundle;
+import android.util.Log;
 import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.TextView;
@@ -12,6 +14,8 @@ import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
 
+import com.example.aplicativocomedoriadatia.cart.CartItem;
+import com.example.aplicativocomedoriadatia.cart.CartManager;
 import com.example.aplicativocomedoriadatia.model.Product;
 
 import java.io.InputStream;
@@ -90,21 +94,36 @@ public class ProductDetailsActivity extends AppCompatActivity {
                 try (InputStream in = new URL(p.image_url).openStream()) {
                     Bitmap bmp = BitmapFactory.decodeStream(in);
                     runOnUiThread(() -> img.setImageBitmap(bmp));
-                } catch (Exception ignored) {
+                } catch (Exception e) {
+                    Log.e("ProductDetail", "Erro carregando imagem", e);
                 }
             });
         } else {
             img.setImageResource(android.R.color.darker_gray);
         }
 
-        findViewById(R.id.btnAdd).setOnClickListener(v ->
-                Toast.makeText(this, "Adicionado ao carrinho!", Toast.LENGTH_SHORT).show()
-        );
+        findViewById(R.id.btnAdd).setOnClickListener(v -> {
+            Toast.makeText(this, "Adicionado ao carrinho!", Toast.LENGTH_SHORT).show();
+
+            if (p != null) {
+
+                p.price = priceValue;
+
+                CartItem item = new CartItem(p, 1);
+                CartManager.with(this).add(item);
+
+                Intent intent = new Intent(this, CartActivity.class);
+                startActivity(intent);
+            }
+        });
+
 
         backBTN.setOnClickListener(v -> finish());
 
-        getSupportActionBar().hide();
-
+        // evita NullPointerException se não existir ActionBar
+        if (getSupportActionBar() != null) {
+            getSupportActionBar().hide();
+        }
     }
 
     @Override
@@ -112,5 +131,4 @@ public class ProductDetailsActivity extends AppCompatActivity {
         super.onDestroy();
         if (exec != null) exec.shutdownNow();
     }
-
 }
