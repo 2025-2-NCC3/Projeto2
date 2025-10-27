@@ -7,6 +7,9 @@
     <!-- Opcional (algumas libs checam o estado de rede) -->
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
 
+    <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
+
+
     <application
         android:allowBackup="true"
         android:icon="@mipmap/ic_launcher_logo_circulo"
@@ -31,10 +34,6 @@
     </activity>
 
     <!-- Demais telas -->
-    <activity
-        android:name=".MainActivity"
-        android:exported="true"
-        android:theme="@style/Theme.AplicativoComedoriaDaTia" />
 
     <activity
         android:name=".HomeActivity"
@@ -79,7 +78,13 @@
             android:exported="false"
             android:theme="@style/Theme.AplicativoComedoriaDaTia"/>
 
-
+        <service
+            android:name=".PushService"
+            android:exported="false">
+            <intent-filter>
+                <action android:name="com.google.firebase.MESSAGING_EVENT" />
+            </intent-filter>
+        </service>
 
 
 </application>

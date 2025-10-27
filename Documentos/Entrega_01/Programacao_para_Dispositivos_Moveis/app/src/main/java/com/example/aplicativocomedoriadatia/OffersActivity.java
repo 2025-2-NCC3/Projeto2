@@ -49,7 +49,6 @@ public class OffersActivity extends AppCompatActivity {
     private TextView tvBadge;
 
     private ImageButton backBTN;
-
     private ImageButton cartBTN;
 
     @Override
@@ -60,11 +59,11 @@ public class OffersActivity extends AppCompatActivity {
 
         Toolbar toolbar = findViewById(R.id.toolbar);
 
-        shimmer = findViewById(R.id.shimmerContainer);
+        shimmer  = findViewById(R.id.shimmerContainer);
         recycler = findViewById(R.id.recyclerProducts);
         errorBox = findViewById(R.id.errorBox);
-        backBTN = findViewById(R.id.backBTN);
-        cartBTN = findViewById(R.id.cartBTN);
+        backBTN  = findViewById(R.id.backBTN);
+        cartBTN  = findViewById(R.id.cartBTN);
 
         recycler.setLayoutManager(new GridLayoutManager(this, 2));
         recycler.setAdapter(adapter);
@@ -123,8 +122,12 @@ public class OffersActivity extends AppCompatActivity {
             tvBadge.setText(String.valueOf(total));
             tvBadge.setVisibility(View.VISIBLE);
             if (animate) {
-                ScaleAnimation sa = new ScaleAnimation(0.8f, 1f, 0.8f, 1f,
-                        tvBadge.getWidth() / 2f, tvBadge.getHeight() / 2f);
+                ScaleAnimation sa = new ScaleAnimation(
+                        0.8f, 1f,
+                        0.8f, 1f,
+                        tvBadge.getWidth() / 2f,
+                        tvBadge.getHeight() / 2f
+                );
                 sa.setDuration(150);
                 tvBadge.startAnimation(sa);
             }
@@ -135,61 +138,165 @@ public class OffersActivity extends AppCompatActivity {
 
     // ================= FETCH OFERTAS =================
     private void fetchOffers() {
+        Log.d(TAG, "fetchOffers(): iniciando busca de promoções...");
         showLoading();
 
         if (executor == null) executor = Executors.newSingleThreadExecutor();
         executor.execute(() -> {
             try {
                 SupabaseClient api = new SupabaseClient(getApplicationContext());
+
+                // importante pra desserializar igual ao JSON que vem do Supabase
                 Type type = new TypeToken<List<ProductPrice>>(){}.getType();
 
-                String endpoint = "product_prices?select=id,price,starts_at,ends_at,product:product_id(id,name,description,image_url)&order=starts_at.desc";
+                String endpoint =
+                        "product_prices"
+                                + "?select=*,product:product_id(id,name,image_url,description,nutrition)"
+                                + "&order=starts_at.desc";
+
+                Log.d(TAG, "fetchOffers(): endpoint = " + endpoint);
 
                 List<ProductPrice> list = api.getList(endpoint, type);
+
+                // Loga a resposta bruta que foi parseada
+                if (list == null) {
+                    Log.w(TAG, "fetchOffers(): list == null (API retornou null)");
+                } else {
+                    Log.d(TAG, "fetchOffers(): list size = " + list.size());
+                    for (int i = 0; i < list.size(); i++) {
+                        ProductPrice p = list.get(i);
+                        Log.d(TAG, "offer[" + i + "]: "
+                                + "id=" + p.id
+                                + ", price=" + p.price
+                                + ", starts_at=" + p.starts_at
+                                + ", ends_at=" + p.ends_at
+                        );
+
+                        // cuidado: dependendo do seu model, pode ser p.product ou p.products
+                        if (p.product != null) {
+                            Log.d(TAG, "offer[" + i + "].product: "
+                                    + "name=" + p.product.name
+                                    + ", img=" + p.product.image_url
+                            );
+                        } else {
+                            Log.w(TAG, "offer[" + i + "].product == null");
+                        }
+                    }
+                }
+
                 runOnUiThread(() -> showContent(list));
 
             } catch (Exception e) {
-                Log.e(TAG, "Erro ao buscar ofertas", e);
-                runOnUiThread(() -> showError("Erro ao carregar ofertas."));
+                Log.e(TAG, "fetchOffers(): Erro ao buscar ofertas", e);
+
+                final String userMsg;
+                if (e.getMessage() != null) {
+                    userMsg = "Erro ao carregar ofertas: " + e.getMessage();
+                } else {
+                    userMsg = "Erro ao carregar ofertas (exceção sem mensagem)";
+                }
+
+                runOnUiThread(() -> showError(userMsg));
             }
         });
     }
 
     private void showLoading() {
+        Log.d(TAG, "showLoading(): shimmer ON, escondendo recycler");
         shimmer.setVisibility(View.VISIBLE);
         shimmer.startShimmer();
         recycler.setVisibility(View.GONE);
+        errorBoxVisibility(false);
     }
 
     private void showContent(List<ProductPrice> offers) {
+        Log.d(TAG, "showContent(): chamado");
+
         shimmer.stopShimmer();
         shimmer.setVisibility(View.GONE);
+
+        // protege contra null pra evitar crash
+        if (offers == null) {
+            Log.w(TAG, "showContent(): offers == null, mostrando erro genérico");
+            recycler.setVisibility(View.GONE);
+            errorBoxVisibility(true);
+            Toast.makeText(this, "Nenhuma promoção encontrada.", Toast.LENGTH_SHORT).show();
+            return;
+        }
+
+        Log.d(TAG, "showContent(): offers.size=" + offers.size());
+
+        if (offers.isEmpty()) {
+            Log.w(TAG, "showContent(): lista vazia, exibindo caixa de erro/vazio");
+            recycler.setVisibility(View.GONE);
+            errorBoxVisibility(true);
+            Toast.makeText(this, "Nenhuma promoção ativa no momento.", Toast.LENGTH_SHORT).show();
+            return;
+        }
+
+        // se chegou aqui tem item
+        errorBoxVisibility(false);
         recycler.setVisibility(View.VISIBLE);
+
+        Log.d(TAG, "showContent(): setItems() no adapter");
         adapter.setItems(offers);
     }
 
     private void showError(String msg) {
+        Log.e(TAG, "showError(): " + msg);
         shimmer.stopShimmer();
         shimmer.setVisibility(View.GONE);
+
+        recycler.setVisibility(View.GONE);
+        errorBoxVisibility(true);
+
         Toast.makeText(this, msg, Toast.LENGTH_SHORT).show();
     }
 
     private void setupRecycler() {
+        Log.d(TAG, "setupRecycler(): configurando RecyclerView e listener");
         recycler.setLayoutManager(new GridLayoutManager(this, 2));
         recycler.setAdapter(adapter);
 
-        adapter.setOnItemClickListener(this::openProductDetails);
+        adapter.setOnItemClickListener(offer -> {
+            Log.d(TAG, "onItemClick(): offer clicada = " +
+                    (offer != null ? offer.id : "null"));
+            openProductDetails(offer);
+        });
     }
 
     private void openProductDetails(ProductPrice offer) {
-        if (offer == null || offer.product == null) return;
+        if (offer == null) {
+            Log.w(TAG, "openProductDetails(): offer == null, abortando");
+            return;
+        }
+
+        // ATENÇÃO AQUI:
+        // no seu código original você usou "offer.product".
+        // Se sua classe tiver "public Product products;" em vez de "product",
+        // você precisa alinhar. Vou logar os dois.
+        if (offer.product == null) {
+            Log.w(TAG, "openProductDetails(): offer.product == null");
+        } else {
+            Log.d(TAG, "openProductDetails(): abrindo detalhes do produto " +
+                    offer.product.name);
+        }
+
+        if (offer.product == null) {
+            Toast.makeText(this, "Produto inválido.", Toast.LENGTH_SHORT).show();
+            return;
+        }
 
         Intent it = new Intent(this, ProductDetailsActivity.class);
         it.putExtra("product", offer.product);
-        it.putExtra("price", offer.price); // preço promocional
+        it.putExtra("price", offer.price);
         it.putExtra("ends_at", offer.ends_at);
-        it.putExtra("is_offer", true); // identifica que veio da tela de ofertas
+        it.putExtra("is_offer", true);
         startActivity(it);
     }
 
+    private void errorBoxVisibility(boolean visible) {
+        if (errorBox == null) return;
+        errorBox.setVisibility(visible ? View.VISIBLE : View.GONE);
+    }
 }

@@ -61,7 +61,7 @@
                 android:layout_width="36dp"
                 android:layout_height="36dp"
                 android:contentDescription="Diminuir"
-                android:src="@android:drawable/ic_media_previous"
+                android:src="@drawable/ic_media_previous"
                 android:background="?attr/selectableItemBackgroundBorderless"/>
 
             <TextView
@@ -70,14 +70,15 @@
                 android:layout_height="wrap_content"
                 android:gravity="center"
                 android:text="1"
-                android:textSize="16sp"/>
+                android:textSize="16sp"
+                android:textColor="@color/black"/>
 
             <ImageButton
                 android:id="@+id/btnPlus"
                 android:layout_width="36dp"
                 android:layout_height="36dp"
                 android:contentDescription="Aumentar"
-                android:src="@android:drawable/ic_media_next"
+                android:src="@drawable/ic_media_next"
                 android:background="?attr/selectableItemBackgroundBorderless"/>
         </LinearLayout>
 
@@ -87,7 +88,7 @@
             android:layout_height="wrap_content"
             android:layout_marginTop="8dp"
             android:contentDescription="Remover"
-            android:src="@android:drawable/ic_menu_delete"
+            android:src="@drawable/ic_menu_delete"
             android:background="?attr/selectableItemBackgroundBorderless"/>
     </LinearLayout>
 </LinearLayout>

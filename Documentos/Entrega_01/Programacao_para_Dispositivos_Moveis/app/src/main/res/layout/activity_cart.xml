@@ -5,6 +5,7 @@
     android:orientation="vertical">
 
     <androidx.recyclerview.widget.RecyclerView
+        android:layout_marginTop="40dp"
         android:id="@+id/recyclerCart"
         android:layout_width="match_parent"
         android:layout_height="0dp"
@@ -46,11 +47,11 @@
             android:layout_marginTop="12dp">
 
             <Button
-                android:id="@+id/btnClear"
+                android:id="@+id/btnContinue"
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
-                android:text="Limpar carrinho"/>
+                android:text="Voltar à Loja"/>
 
             <Button
                 android:id="@+id/btnCheckout"

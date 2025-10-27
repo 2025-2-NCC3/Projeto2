@@ -1,8 +1,14 @@
 package com.example.aplicativocomedoriadatia;
 
+import android.Manifest;
+import android.app.NotificationChannel;
+import android.app.NotificationManager;
+import android.app.PendingIntent;
 import android.content.Context;
 import android.content.Intent;
+import android.content.pm.PackageManager;
 import android.net.Uri;
+import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
@@ -21,6 +27,8 @@ import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.app.AppCompatDelegate;
 import androidx.appcompat.widget.Toolbar;
+import androidx.core.app.ActivityCompat;
+import androidx.core.app.NotificationCompat;
 import androidx.core.content.ContextCompat;
 import androidx.recyclerview.widget.GridLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
@@ -53,6 +61,9 @@ public class HomeActivity extends AppCompatActivity {
 
     private static final String TAG = "HomeActivity";
     private static final long AUTO_REFRESH_MS = 20_000L;
+
+    private static final String CHANNEL_ID = "promo_channel"; // >>> NOVO TESTE: mesmo canal do PushService
+    private static final int REQ_POST_NOTIF = 1001;            // >>> NOVO TESTE
 
     // ===== Variáveis principais =====
     private String lastQuery = "";
@@ -126,7 +137,101 @@ public class HomeActivity extends AppCompatActivity {
             Intent it = new Intent(this, CartActivity.class);
             startActivity(it);
         });
+
+        // >>> NOVO TESTE: pedir permissão de notificação (Android 13+) e depois disparar notificação fake
+        askNotificationPermissionAndTest();
     }
+
+    // >>> NOVO TESTE: pede permissão se precisa. Quando tiver permissão, chama showLocalTestNotification()
+    private void askNotificationPermissionAndTest() {
+        if (Build.VERSION.SDK_INT >= 33) {
+            if (ContextCompat.checkSelfPermission(
+                    this,
+                    Manifest.permission.POST_NOTIFICATIONS
+            ) != PackageManager.PERMISSION_GRANTED) {
+
+                ActivityCompat.requestPermissions(
+                        this,
+                        new String[]{ Manifest.permission.POST_NOTIFICATIONS },
+                        REQ_POST_NOTIF
+                );
+            } else {
+                // já tem permissão
+                showLocalTestNotification();
+            }
+        } else {
+            // versões antigas não precisam
+            showLocalTestNotification();
+        }
+    }
+
+    // >>> NOVO TESTE: callback da permissão
+    @Override
+    public void onRequestPermissionsResult(
+            int requestCode,
+            String[] permissions,
+            int[] grantResults
+    ) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
+        if (requestCode == REQ_POST_NOTIF) {
+            boolean granted = grantResults.length > 0 &&
+                    grantResults[0] == PackageManager.PERMISSION_GRANTED;
+            if (granted) {
+                showLocalTestNotification();
+            } else {
+                Log.w(TAG, "Permissão de notificação negada. Sem notificação de teste.");
+            }
+        }
+    }
+
+    // >>> NOVO TESTE: notificação local simulando "nova promoção"
+    private void showLocalTestNotification() {
+        String title = "🍔 Promoção da Tia!";
+        String body  = "Nova coxinha com desconto chegou no cardápio 😋";
+
+        NotificationManager nm = (NotificationManager) getSystemService(NOTIFICATION_SERVICE);
+
+        // canal (Android 8+)
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            NotificationChannel ch = new NotificationChannel(
+                    CHANNEL_ID,
+                    "Promoções da Comedoria",
+                    NotificationManager.IMPORTANCE_HIGH
+            );
+            nm.createNotificationChannel(ch);
+        }
+
+        // Quando clicar, volta pra HomeActivity
+        Intent intent = new Intent(this, HomeActivity.class);
+        intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_SINGLE_TOP);
+
+        PendingIntent pi = PendingIntent.getActivity(
+                this,
+                0,
+                intent,
+                Build.VERSION.SDK_INT >= Build.VERSION_CODES.S
+                        ? PendingIntent.FLAG_IMMUTABLE | PendingIntent.FLAG_UPDATE_CURRENT
+                        : PendingIntent.FLAG_UPDATE_CURRENT
+        );
+
+        NotificationCompat.BigTextStyle bigStyle =
+                new NotificationCompat.BigTextStyle()
+                        .bigText(body)
+                        .setBigContentTitle(title);
+
+        NotificationCompat.Builder builder =
+                new NotificationCompat.Builder(this, CHANNEL_ID)
+                        .setSmallIcon(R.drawable.ic_logo_comedoria)
+                        .setContentTitle(title)
+                        .setContentText(body)
+                        .setStyle(bigStyle)
+                        .setPriority(NotificationCompat.PRIORITY_HIGH)
+                        .setAutoCancel(true)
+                        .setContentIntent(pi);
+
+        nm.notify((int) System.currentTimeMillis(), builder.build());
+    }
+    // <<< FIM DA PARTE DE TESTE
 
 
     @Override
@@ -237,7 +342,7 @@ public class HomeActivity extends AppCompatActivity {
 
         Intent it = new Intent(this, ProductDetailsActivity.class);
         it.putExtra("product", product);
-        it.putExtra("price", product.cost_estimated); // preço original
+        it.putExtra("price", product.price); // preço original
         it.putExtra("is_offer", false); // produto normal
         startActivity(it);
     }
@@ -432,9 +537,6 @@ public class HomeActivity extends AppCompatActivity {
     }
 
     // ===== Chips Controller interno =====
-    // =====================================================================
-// Controller de Chips (interno)
-// =====================================================================
     private static final class FilterChipsController {
 
         interface OnFilterSelected { void onFilter(String category); }
@@ -465,7 +567,6 @@ public class HomeActivity extends AppCompatActivity {
             putIfExists(R.id.chipDoces, "Doces");
             putIfExists(R.id.chipPromocoes, "Promoções");
 
-            // aplica estilo e listeners
             for (int i = 0; i < idToCategory.size(); i++) {
                 int viewId = idToCategory.keyAt(i);
                 TextView tv = container.findViewById(viewId);
@@ -475,7 +576,6 @@ public class HomeActivity extends AppCompatActivity {
                 }
             }
 
-            // seleção padrão
             TextView chipTodos = safeFind(R.id.chipTodos);
             if (chipTodos != null) selectChip(chipTodos);
         }
@@ -484,7 +584,6 @@ public class HomeActivity extends AppCompatActivity {
             return new FilterChipsController(container, callback);
         }
 
-        /** <<< MÉTODO QUE FALTAVA >>>  */
         void selectById(int viewId) {
             TextView tv = safeFind(viewId);
             if (tv != null) selectChip(tv);

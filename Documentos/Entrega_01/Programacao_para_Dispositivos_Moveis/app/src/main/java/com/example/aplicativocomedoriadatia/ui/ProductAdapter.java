@@ -67,7 +67,7 @@ public class ProductAdapter extends RecyclerView.Adapter<ProductAdapter.VH> {
         h.name.setText(p.name != null ? p.name : "Produto");
 
         // Preço (usando cost_estimated como preço)
-        double val = p.cost_estimated;
+        double val = p.price;
         h.price.setText(brl.format(val));
 
         // Imagem
