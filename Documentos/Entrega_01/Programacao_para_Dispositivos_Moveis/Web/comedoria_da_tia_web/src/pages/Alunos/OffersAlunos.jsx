@@ -1,5 +1,3 @@
-"use client"
-
 import { useState, useMemo, useEffect } from "react"
 import { Search, ShoppingCart, Home, Clock, Calendar, Plus, Check, Tag } from "lucide-react"
 import supabase from '../../lib/supabaseClient' // Ajuste o caminho conforme necessário

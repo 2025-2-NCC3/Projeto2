@@ -1,0 +1,428 @@
+/* =========================
+   THEME TOKENS
+   ========================= */
+:root {
+  --bg:#0f172a;
+  --card:rgba(30,41,59,.6);
+  --border:rgba(255,255,255,.08);
+  --text:#e5e7eb;
+  --muted:#94a3b8;
+  --primary:#10b981;
+  --primary2:#059669;
+}
+
+/* =========================
+   PAGE WRAPPER
+   ========================= */
+.imgbank-page {
+  min-height:100vh;
+  padding:24px;
+  background:linear-gradient(135deg,#0b1220,#0f172a 35%,#065f46 100%);
+  color:var(--text);
+  display:flex;
+  flex-direction:column;
+  gap:16px;
+}
+
+/* Mobile: dá um respiro menor pra não sobrar scroll lateral */
+@media(max-width:480px){
+  .imgbank-page{
+    padding:16px 16px 24px;
+    gap:12px;
+  }
+}
+
+/* =========================
+   TOP BAR
+   ========================= */
+.imgbank-topbar {
+  max-width:1100px;
+  width:100%;
+  margin:0 auto;
+  display:flex;
+  flex-wrap:wrap;
+  align-items:flex-start;
+  justify-content:space-between;
+  gap:12px;
+}
+
+/* Em telas bem pequenas, empilha título e ações em coluna */
+@media(max-width:600px){
+  .imgbank-topbar{
+    flex-direction:column;
+    align-items:flex-start;
+    gap:16px;
+  }
+}
+
+.imgbank-title {
+  display:flex;
+  flex-direction:column;
+  align-items:flex-start;
+  gap:6px;
+  min-width:0; /* pra permitir quebra e evitar overflow */
+}
+
+.imgbank-title h1{
+  font:700 clamp(18px,2vw,22px)/1.2 ui-sans-serif,system-ui;
+  margin:0;
+  word-break:break-word;
+  color:var(--text);
+}
+
+.imgbank-sub{
+  font:400 13px/1.4 ui-sans-serif,system-ui;
+  color:var(--muted);
+  margin:0;
+  max-width:700px;
+}
+
+/* Botões / ações no topo */
+.imgbank-actions{
+  display:flex;
+  flex-wrap:wrap;
+  gap:10px;
+  align-items:center;
+}
+
+/* No mobile, ações ocupam 100% e botões esticam */
+@media(max-width:600px){
+  .imgbank-actions{
+    width:100%;
+    flex-direction:row;
+    flex-wrap:wrap;
+    justify-content:flex-start;
+  }
+  .imgbank-actions .btn-primary,
+  .imgbank-actions .btn-outline{
+    flex:1 1 auto;
+    min-width:140px;
+    justify-content:center;
+  }
+}
+
+/* =========================
+   CARD CONTAINER
+   ========================= */
+.imgbank-card{
+  max-width:1100px;
+  width:100%;
+  margin:0 auto 24px;
+  background:var(--card);
+  border:1px solid var(--border);
+  border-radius:16px;
+  padding:16px;
+  backdrop-filter:blur(10px);
+  box-shadow:0 20px 50px rgba(0,0,0,.35);
+  display:grid;
+  gap:16px;
+}
+
+/* Em telas médias, aumenta padding um pouco pra respirar */
+@media(min-width:768px){
+  .imgbank-card{
+    padding:20px;
+    gap:20px;
+  }
+}
+
+@media(min-width:1024px){
+  .imgbank-card{
+    padding:24px;
+    gap:24px;
+  }
+}
+
+/* =========================
+   GRID PRINCIPAL (esquerda / direita)
+   ========================= */
+.imgbank-grid{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:16px;
+}
+
+/* Tablet/desktop médio: mantém 2 colunas */
+@media(min-width:768px){
+  .imgbank-grid{
+    gap:20px;
+  }
+}
+
+/* Celular: vira 1 coluna */
+@media(max-width:980px){
+  .imgbank-grid{
+    grid-template-columns:1fr;
+  }
+}
+
+/* =========================
+   PAINEL
+   ========================= */
+.imgbank-panel{
+  background:rgba(255,255,255,.04);
+  border:1px solid var(--border);
+  border-radius:12px;
+  padding:16px;
+  display:grid;
+  gap:12px;
+}
+
+@media(min-width:768px){
+  .imgbank-panel{
+    padding:16px 20px;
+    gap:14px;
+  }
+}
+
+.imgbank-panel h2{
+  margin:0;
+  font:700 14px/1.2 ui-sans-serif,system-ui;
+  color:var(--text);
+  display:flex;
+  align-items:center;
+  gap:8px;
+  word-break:break-word;
+}
+
+.imgbank-hint{
+  font-size:12px;
+  line-height:1.4;
+  color:var(--muted);
+}
+
+/* =========================
+   FORM FIELDS
+   ========================= */
+.imgbank-field{
+  display:grid;
+  gap:6px;
+}
+.imgbank-field label{
+  font-weight:700;
+  font-size:14px;
+  color:var(--text);
+  line-height:1.3;
+  word-break:break-word;
+}
+
+/* inputs / search bar */
+.imgbank-input{
+  width:100%;
+  border-radius:10px;
+  padding:10px 12px;
+  border:1px solid var(--border);
+  background:rgba(255,255,255,.06);
+  color:var(--text);
+  font-size:14px;
+  line-height:1.3;
+  outline:none;
+  min-height:40px;
+}
+
+/* linha de busca = input + botão */
+.imgbank-searchrow{
+  display:flex;
+  flex-wrap:wrap;
+  align-items:stretch;
+  gap:8px;
+}
+
+/* Força input e botão a quebrar certinho em telas pequenas */
+@media(max-width:480px){
+  .imgbank-searchrow{
+    flex-direction:column;
+  }
+
+  .imgbank-searchrow .imgbank-input{
+    width:100%;
+  }
+
+  .imgbank-searchrow .btn-primary{
+    width:100%;
+    justify-content:center;
+  }
+}
+
+/* =========================
+   GRID DE RESULTADOS (Pixabay)
+   ========================= */
+.imgbank-results-grid{
+  display:grid;
+  grid-template-columns:repeat(auto-fill,minmax(140px,1fr));
+  gap:12px;
+}
+
+/* Telas médias: dá um pouco mais de espaço entre cards */
+@media(min-width:768px){
+  .imgbank-results-grid{
+    gap:16px;
+  }
+}
+
+/* Celular bem estreito: não deixa virar thumb minúscula demais */
+@media(max-width:400px){
+  .imgbank-results-grid{
+    grid-template-columns:repeat(auto-fill,minmax(120px,1fr));
+  }
+}
+
+/* =========================
+   CARD DE IMAGEM
+   ========================= */
+.imgcard{
+  background:rgba(0,0,0,.2);
+  border:1px solid var(--border);
+  border-radius:10px;
+  overflow:hidden;
+  box-shadow:0 15px 30px rgba(0,0,0,.5);
+  display:flex;
+  flex-direction:column;
+  min-width:0;
+}
+.imgcard-thumb{
+  width:100%;
+  height:100px;
+  background:#1e2537;
+  object-fit:cover;
+}
+@media(min-width:768px){
+  .imgcard-thumb{
+    height:120px;
+  }
+}
+
+.imgcard-body{
+  padding:10px;
+  display:grid;
+  gap:6px;
+}
+.imgcard-tags{
+  color:var(--muted);
+  font-size:11px;
+  line-height:1.3;
+  max-height:2.6em;
+  overflow:hidden;
+  word-break:break-word;
+}
+.imgcard-meta{
+  color:var(--muted);
+  font-size:10px;
+  line-height:1.2;
+  display:flex;
+  justify-content:space-between;
+  flex-wrap:wrap;
+  gap:4px;
+}
+
+.imgcard-footer{
+  display:flex;
+  justify-content:flex-end;
+  padding:0 10px 10px;
+}
+
+/* =========================
+   BOTÕES
+   ========================= */
+.btn-primary,
+.btn-outline{
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  gap:8px;
+  padding:10px 14px;
+  border-radius:10px;
+  font-size:14px;
+  line-height:1.2;
+  cursor:pointer;
+  white-space:nowrap;
+  text-decoration:none;
+  min-height:40px;
+  font-weight:600;
+}
+
+.btn-primary{
+  background-image:linear-gradient(90deg,var(--primary),var(--primary2));
+  color:#fff;
+  border:0;
+  box-shadow:0 10px 24px rgba(16,185,129,.35);
+}
+.btn-outline{
+  background:rgba(255,255,255,.02);
+  border:1px solid var(--border);
+  color:var(--text);
+}
+.btn-xs{
+  font-size:12px;
+  padding:6px 10px;
+  border-radius:8px;
+  min-height:32px;
+}
+
+/* =========================
+   STATUS (carregando / vazio)
+   ========================= */
+.imgbank-status{
+  text-align:center;
+  font-size:13px;
+  color:var(--muted);
+  padding:16px 8px;
+  word-break:break-word;
+}
+
+/* =========================
+   GALERIA SALVA
+   ========================= */
+.gallery-grid{
+  display:grid;
+  grid-template-columns:repeat(auto-fill,minmax(140px,1fr));
+  gap:12px;
+}
+
+@media(min-width:768px){
+  .gallery-grid{
+    gap:16px;
+  }
+}
+
+@media(max-width:400px){
+  .gallery-grid{
+    grid-template-columns:repeat(auto-fill,minmax(120px,1fr));
+  }
+}
+
+.gallery-thumb{
+  width:100%;
+  height:100px;
+  background:#1e2537;
+  object-fit:cover;
+  border-bottom:1px solid var(--border);
+}
+@media(min-width:768px){
+  .gallery-thumb{
+    height:120px;
+  }
+}
+
+.gallery-info{
+  padding:10px;
+  display:grid;
+  gap:6px;
+  min-width:0;
+}
+
+.copy-btn{
+  border:1px solid var(--border);
+  background:rgba(255,255,255,.06);
+  color:var(--text);
+  font-size:11px;
+  line-height:1.2;
+  padding:6px 10px;
+  border-radius:8px;
+  cursor:pointer;
+  text-align:center;
+  word-break:break-word;
+}
+.copy-btn:active{
+  filter:brightness(.8);
+}

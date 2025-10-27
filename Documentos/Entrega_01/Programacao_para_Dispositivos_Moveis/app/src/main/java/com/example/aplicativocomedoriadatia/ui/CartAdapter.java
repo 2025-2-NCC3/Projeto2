@@ -51,7 +51,7 @@ public class CartAdapter extends RecyclerView.Adapter<CartAdapter.VH> {
         CartItem it = items.get(position);
 
         String name = it.product != null && it.product.name != null ? it.product.name : "Produto";
-        double price = (it.product != null) ? it.product.cost_estimated : 0.0;
+        double price = (it.product != null) ? it.product.price : 0.0;
         double subtotal = price * it.qty;
 
         h.name.setText(name);

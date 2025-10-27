@@ -11,6 +11,7 @@ import {
   LogOut,
   ChevronLeft,
   ChevronRight,
+  Images,
 } from "lucide-react";
 import "./Sidebar.css";
 import supabase from "../../lib/supabaseClient";
@@ -120,6 +121,12 @@ export default function Sidebar() {
           label="Configurações"
           collapsed={collapsed}
           disabled
+        />
+        <SbLink
+          to="/app/banco-imagens"
+          icon={<Images size={18} />}
+          label="Banco de Imagens"
+          collapsed={collapsed}
         />
 
         <div className="sb-spacer" />

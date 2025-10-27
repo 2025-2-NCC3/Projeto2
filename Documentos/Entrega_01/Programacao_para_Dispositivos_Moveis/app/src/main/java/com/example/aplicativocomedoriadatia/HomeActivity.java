@@ -1,8 +1,14 @@
 package com.example.aplicativocomedoriadatia;
 
+import android.Manifest;
+import android.app.NotificationChannel;
+import android.app.NotificationManager;
+import android.app.PendingIntent;
 import android.content.Context;
 import android.content.Intent;
+import android.content.pm.PackageManager;
 import android.net.Uri;
+import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
@@ -12,6 +18,7 @@ import android.view.MenuItem;
 import android.view.View;
 import android.view.animation.ScaleAnimation;
 import android.widget.Button;
+import android.widget.ImageButton;
 import android.widget.LinearLayout;
 import android.widget.Toast;
 
@@ -20,6 +27,8 @@ import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.app.AppCompatDelegate;
 import androidx.appcompat.widget.Toolbar;
+import androidx.core.app.ActivityCompat;
+import androidx.core.app.NotificationCompat;
 import androidx.core.content.ContextCompat;
 import androidx.recyclerview.widget.GridLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
@@ -53,6 +62,9 @@ public class HomeActivity extends AppCompatActivity {
     private static final String TAG = "HomeActivity";
     private static final long AUTO_REFRESH_MS = 20_000L;
 
+    private static final String CHANNEL_ID = "promo_channel"; // >>> NOVO TESTE: mesmo canal do PushService
+    private static final int REQ_POST_NOTIF = 1001;            // >>> NOVO TESTE
+
     // ===== Variáveis principais =====
     private String lastQuery = "";
     private String lastDataSignature = "";
@@ -74,7 +86,6 @@ public class HomeActivity extends AppCompatActivity {
     private View btnSeeAll;
     private LinearLayout chipsContainer;
     private TextInputEditText etSearch;
-    private LinearLayout navInicio, navPedidos, navOfertas, navPerfil;
 
     // ===== Dados =====
     private final ProductAdapter adapter = new ProductAdapter();
@@ -90,6 +101,9 @@ public class HomeActivity extends AppCompatActivity {
     private final Handler searchHandler = new Handler(Looper.getMainLooper());
     private Runnable searchRunnable;
 
+    private ImageButton cartBTN;
+
+
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
         AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_NO);
@@ -104,10 +118,8 @@ public class HomeActivity extends AppCompatActivity {
         btnSeeAll = findViewById(R.id.btnSeeAll);
         chipsContainer = findViewById(R.id.chipsContainer);
         etSearch = findViewById(R.id.etSearch);
-        navInicio = findViewById(R.id.nav_inicio);
-        navPedidos = findViewById(R.id.nav_pedidos);
-        navOfertas = findViewById(R.id.nav_ofertas);
-        navPerfil = findViewById(R.id.nav_perfil);
+
+        cartBTN = findViewById(R.id.cartBTN);
 
         toolbar = findViewById(R.id.toolbar);
         if (toolbar != null) setSupportActionBar(toolbar);
@@ -115,30 +127,112 @@ public class HomeActivity extends AppCompatActivity {
         setupHeaderAndChips();
         setupRecycler();
         setupRetry();
-        setupBottomNav();
+        NavbarHelper.setup(this);
         setupSearch();
 
         executor = Executors.newSingleThreadExecutor();
         fetchProducts(null);
+
+        cartBTN.setOnClickListener(v -> {
+            Intent it = new Intent(this, CartActivity.class);
+            startActivity(it);
+        });
+
+        // >>> NOVO TESTE: pedir permissão de notificação (Android 13+) e depois disparar notificação fake
+        askNotificationPermissionAndTest();
     }
 
-    // ================= MENU do Carrinho =================
+    // >>> NOVO TESTE: pede permissão se precisa. Quando tiver permissão, chama showLocalTestNotification()
+    private void askNotificationPermissionAndTest() {
+        if (Build.VERSION.SDK_INT >= 33) {
+            if (ContextCompat.checkSelfPermission(
+                    this,
+                    Manifest.permission.POST_NOTIFICATIONS
+            ) != PackageManager.PERMISSION_GRANTED) {
+
+                ActivityCompat.requestPermissions(
+                        this,
+                        new String[]{ Manifest.permission.POST_NOTIFICATIONS },
+                        REQ_POST_NOTIF
+                );
+            } else {
+                // já tem permissão
+                showLocalTestNotification();
+            }
+        } else {
+            // versões antigas não precisam
+            showLocalTestNotification();
+        }
+    }
+
+    // >>> NOVO TESTE: callback da permissão
     @Override
-    public boolean onCreateOptionsMenu(Menu menu) {
-        getMenuInflater().inflate(R.menu.menu_home_top, menu);
+    public void onRequestPermissionsResult(
+            int requestCode,
+            String[] permissions,
+            int[] grantResults
+    ) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
+        if (requestCode == REQ_POST_NOTIF) {
+            boolean granted = grantResults.length > 0 &&
+                    grantResults[0] == PackageManager.PERMISSION_GRANTED;
+            if (granted) {
+                showLocalTestNotification();
+            } else {
+                Log.w(TAG, "Permissão de notificação negada. Sem notificação de teste.");
+            }
+        }
+    }
 
-        MenuItem cartItem = menu.findItem(R.id.action_cart);
-        View actionView = cartItem.getActionView();
-        tvBadge = actionView.findViewById(R.id.tvBadge);
+    // >>> NOVO TESTE: notificação local simulando "nova promoção"
+    private void showLocalTestNotification() {
+        String title = "🍔 Promoção da Tia!";
+        String body  = "Nova coxinha com desconto chegou no cardápio 😋";
 
-        // clique no ícone do carrinho → abre tela
-        actionView.setOnClickListener(v ->
-                startActivity(new Intent(this, CartActivity.class))
+        NotificationManager nm = (NotificationManager) getSystemService(NOTIFICATION_SERVICE);
+
+        // canal (Android 8+)
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            NotificationChannel ch = new NotificationChannel(
+                    CHANNEL_ID,
+                    "Promoções da Comedoria",
+                    NotificationManager.IMPORTANCE_HIGH
+            );
+            nm.createNotificationChannel(ch);
+        }
+
+        // Quando clicar, volta pra HomeActivity
+        Intent intent = new Intent(this, HomeActivity.class);
+        intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_SINGLE_TOP);
+
+        PendingIntent pi = PendingIntent.getActivity(
+                this,
+                0,
+                intent,
+                Build.VERSION.SDK_INT >= Build.VERSION_CODES.S
+                        ? PendingIntent.FLAG_IMMUTABLE | PendingIntent.FLAG_UPDATE_CURRENT
+                        : PendingIntent.FLAG_UPDATE_CURRENT
         );
 
-        updateCartBadge(false);
-        return true;
+        NotificationCompat.BigTextStyle bigStyle =
+                new NotificationCompat.BigTextStyle()
+                        .bigText(body)
+                        .setBigContentTitle(title);
+
+        NotificationCompat.Builder builder =
+                new NotificationCompat.Builder(this, CHANNEL_ID)
+                        .setSmallIcon(R.drawable.ic_logo_comedoria)
+                        .setContentTitle(title)
+                        .setContentText(body)
+                        .setStyle(bigStyle)
+                        .setPriority(NotificationCompat.PRIORITY_HIGH)
+                        .setAutoCancel(true)
+                        .setContentIntent(pi);
+
+        nm.notify((int) System.currentTimeMillis(), builder.build());
     }
+    // <<< FIM DA PARTE DE TESTE
+
 
     @Override
     public boolean onPrepareOptionsMenu(Menu menu) {
@@ -219,66 +313,14 @@ public class HomeActivity extends AppCompatActivity {
         return et != null && et.getText() != null ? et.getText().toString() : "";
     }
 
-    // ================= Bottom Navigation =================
-    private void setupBottomNav() {
-        if (navInicio == null || navPedidos == null || navOfertas == null || navPerfil == null) return;
-
-        View.OnClickListener listener = v -> {
-            // Animação de clique
-            v.animate().scaleX(0.95f).scaleY(0.95f).setDuration(80)
-                    .withEndAction(() -> v.animate().scaleX(1f).scaleY(1f).setDuration(80).start());
-
-            setSelectedTab(v.getId());
-            if (v.getId() == R.id.nav_inicio) {
-                if (etSearch != null) etSearch.setText("");
-                selectedCategory = "Todos";
-                if (chipsController != null) chipsController.selectById(R.id.chipTodos);
-                fetchProducts(null);
-            } else if (v.getId() == R.id.nav_pedidos) {
-                Toast.makeText(this, "Pedidos (em breve)", Toast.LENGTH_SHORT).show();
-            } else if (v.getId() == R.id.nav_ofertas) {
-                // agora abre a OffersActivity de verdade
-                startActivity(new Intent(this, OffersActivity.class));
-            } else if (v.getId() == R.id.nav_perfil) {
-                // ✅ ATUALIZADO: Agora vai para ProfileActivity
-                openProfileActivity();
-            }
-        };
-
-        navInicio.setOnClickListener(listener);
-        navPedidos.setOnClickListener(listener);
-        navOfertas.setOnClickListener(listener);
-        navPerfil.setOnClickListener(listener);
-        setSelectedTab(R.id.nav_inicio);
-    }
-
-    private void openProfileActivity() {
-        SessionManager session = new SessionManager(this);
-
-        // Verifica se usuário está logado
-        if (!session.isLoggedIn()) {
-            Toast.makeText(this, "Faça login para acessar seu perfil", Toast.LENGTH_SHORT).show();
-            startActivity(new Intent(this, LoginActivity.class));
-            return;
-        }
-
-        Intent intent = new Intent(this, ProfileActivity.class);
-        startActivity(intent);
-
-    }
-
-    private void setSelectedTab(int viewId) {
-        navInicio.setSelected(viewId == R.id.nav_inicio);
-        navPedidos.setSelected(viewId == R.id.nav_pedidos);
-        navOfertas.setSelected(viewId == R.id.nav_ofertas);
-        navPerfil.setSelected(viewId == R.id.nav_perfil);
-    }
 
     // ================= Conteúdo / produtos =================
     private void setupHeaderAndChips() {
         if (btnSeeAll != null) {
-            btnSeeAll.setOnClickListener(v ->
-                    Toast.makeText(this, "Abrir lista completa", Toast.LENGTH_SHORT).show());
+            btnSeeAll.setOnClickListener(v -> {
+                Intent it = new Intent(this, AllProductsActivity.class);
+                startActivity(it);
+            });
         }
 
         if (chipsContainer != null) {
@@ -297,8 +339,11 @@ public class HomeActivity extends AppCompatActivity {
 
     private void openProductDetails(Product product) {
         if (product == null) return;
+
         Intent it = new Intent(this, ProductDetailsActivity.class);
         it.putExtra("product", product);
+        it.putExtra("price", product.price); // preço original
+        it.putExtra("is_offer", false); // produto normal
         startActivity(it);
     }
 
@@ -492,9 +537,6 @@ public class HomeActivity extends AppCompatActivity {
     }
 
     // ===== Chips Controller interno =====
-    // =====================================================================
-    // Controller de Chips (interno)
-    // =====================================================================
     private static final class FilterChipsController {
 
         interface OnFilterSelected { void onFilter(String category); }
@@ -525,7 +567,6 @@ public class HomeActivity extends AppCompatActivity {
             putIfExists(R.id.chipDoces, "Doces");
             putIfExists(R.id.chipPromocoes, "Promoções");
 
-            // aplica estilo e listeners
             for (int i = 0; i < idToCategory.size(); i++) {
                 int viewId = idToCategory.keyAt(i);
                 TextView tv = container.findViewById(viewId);
@@ -535,7 +576,6 @@ public class HomeActivity extends AppCompatActivity {
                 }
             }
 
-            // seleção padrão
             TextView chipTodos = safeFind(R.id.chipTodos);
             if (chipTodos != null) selectChip(chipTodos);
         }
@@ -544,7 +584,6 @@ public class HomeActivity extends AppCompatActivity {
             return new FilterChipsController(container, callback);
         }
 
-        /** <<< MÉTODO QUE FALTAVA >>>  */
         void selectById(int viewId) {
             TextView tv = safeFind(viewId);
             if (tv != null) selectChip(tv);
@@ -613,4 +652,5 @@ public class HomeActivity extends AppCompatActivity {
             return Math.round(v * ctx.getResources().getDisplayMetrics().density);
         }
     }
+
 }

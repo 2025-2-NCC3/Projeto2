@@ -1,8 +1,10 @@
 package com.example.aplicativocomedoriadatia;
 
+import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.os.Bundle;
+import android.util.Log;
 import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.TextView;
@@ -11,8 +13,9 @@ import android.widget.Toast;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
-import androidx.core.content.ContextCompat;
 
+import com.example.aplicativocomedoriadatia.cart.CartItem;
+import com.example.aplicativocomedoriadatia.cart.CartManager;
 import com.example.aplicativocomedoriadatia.model.Product;
 
 import java.io.InputStream;
@@ -25,157 +28,107 @@ import java.util.concurrent.Executors;
 public class ProductDetailsActivity extends AppCompatActivity {
 
     private ExecutorService exec;
-    private FavoriteService favoriteService;
-    private SessionManager session;
-    private Product product;
-    private boolean isFavorite = false;
 
-    private ImageButton btnFavorite;
-    private ImageView img;
-    private TextView name, price, description;
+    private ImageButton backBTN;
+
 
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_product_details);
 
-        // Inicializa serviços
-        session = new SessionManager(this);
-        favoriteService = new FavoriteService(this);
-        exec = Executors.newSingleThreadExecutor();
-
-        // Configura toolbar
         Toolbar tb = findViewById(R.id.toolbar);
         setSupportActionBar(tb);
         getSupportActionBar().setDisplayHomeAsUpEnabled(true);
         tb.setNavigationOnClickListener(v -> onBackPressed());
 
-        // Inicializa views
-        initViews();
+        // --- Recebe dados vindos do Intent ---
+        Product p = (Product) getIntent().getSerializableExtra("product");
+        double priceValue = getIntent().getDoubleExtra("price", 0.0);
+        String endsAt = getIntent().getStringExtra("ends_at");
+        boolean isOffer = getIntent().getBooleanExtra("is_offer", false);
 
-        // Obtém o produto
-        product = (Product) getIntent().getSerializableExtra("product");
-        if (product == null) {
+        if (p == null) {
             Toast.makeText(this, "Produto inválido", Toast.LENGTH_SHORT).show();
             finish();
             return;
         }
 
-        // Carrega dados do produto
-        loadProductData();
+        ImageView img = findViewById(R.id.img);
+        TextView name = findViewById(R.id.name);
+        TextView price = findViewById(R.id.price);
+        TextView desc = findViewById(R.id.description);
+        TextView validity = findViewById(R.id.validity);
 
-        // Verifica se é favorito (se usuário está logado)
-        checkIfFavorite();
+        backBTN = findViewById(R.id.backBTN);
 
-        // Configura listeners
-        setupClickListeners();
-    }
 
-    private void initViews() {
-        img = findViewById(R.id.img);
-        name = findViewById(R.id.name);
-        price = findViewById(R.id.price);
-        description = findViewById(R.id.description);
-        btnFavorite = findViewById(R.id.btnFavorite);
-    }
 
-    private void loadProductData() {
-        name.setText(product.name != null ? product.name : "Produto");
-        price.setText(formatCurrency(product.cost_estimated));
-        description.setText(product.description != null ? product.description : "Sem descrição.");
+        name.setText(p.name != null ? p.name : "Produto");
+        desc.setText(p.description != null ? p.description : "Sem descrição.");
 
-        // Carrega imagem
-        if (product.image_url != null && !product.image_url.isEmpty()) {
+        // --- Define o preço ---
+        price.setText(NumberFormat.getCurrencyInstance(new Locale("pt", "BR"))
+                .format(priceValue));
+
+        // --- Controle da validade ---
+        if (isOffer) {
+            // Produto veio da tela de ofertas
+            if (endsAt != null && !endsAt.isEmpty()) {
+                String data = endsAt.split("T")[0];
+                validity.setText("Válido até: " + data);
+                validity.setVisibility(TextView.VISIBLE);
+            } else {
+                validity.setText("Promoção por tempo limitado");
+                validity.setVisibility(TextView.VISIBLE);
+            }
+        } else {
+            // Produto normal — não exibe validade
+            validity.setVisibility(TextView.GONE);
+        }
+
+        // --- Carrega imagem (sem Glide) ---
+        if (p.image_url != null && p.image_url.startsWith("http")) {
+            exec = Executors.newSingleThreadExecutor();
             exec.execute(() -> {
-                try (InputStream in = new URL(product.image_url).openStream()) {
+                try (InputStream in = new URL(p.image_url).openStream()) {
                     Bitmap bmp = BitmapFactory.decodeStream(in);
                     runOnUiThread(() -> img.setImageBitmap(bmp));
                 } catch (Exception e) {
-                    runOnUiThread(() -> img.setImageResource(android.R.color.darker_gray));
+                    Log.e("ProductDetail", "Erro carregando imagem", e);
                 }
             });
         } else {
             img.setImageResource(android.R.color.darker_gray);
         }
 
-        // Botão adicionar ao carrinho
-        findViewById(R.id.btnAdd).setOnClickListener(v ->
-                Toast.makeText(this, "Adicionado ao carrinho!", Toast.LENGTH_SHORT).show()
-        );
-    }
+        findViewById(R.id.btnAdd).setOnClickListener(v -> {
+            Toast.makeText(this, "Adicionado ao carrinho!", Toast.LENGTH_SHORT).show();
 
-    private void checkIfFavorite() {
-        String userId = session.getUserId();
-        String accessToken = session.getAccess();
+            if (p != null) {
 
-        if (userId != null && accessToken != null && product != null) {
-            exec.execute(() -> {
-                isFavorite = favoriteService.isFavorite(userId, product.id, accessToken);
-                runOnUiThread(this::updateFavoriteButton);
-            });
-        }
-    }
+                p.price = priceValue;
 
-    private void setupClickListeners() {
-        btnFavorite.setOnClickListener(v -> toggleFavorite());
-    }
+                CartItem item = new CartItem(p, 1);
+                CartManager.with(this).add(item);
 
-    private void toggleFavorite() {
-        String userId = session.getUserId();
-        String accessToken = session.getAccess();
-
-        if (userId == null || accessToken == null) {
-            Toast.makeText(this, "Faça login para favoritar produtos", Toast.LENGTH_SHORT).show();
-            return;
-        }
-
-        if (product == null) return;
-
-        // Feedback visual imediato
-        isFavorite = !isFavorite;
-        updateFavoriteButton();
-
-        exec.execute(() -> {
-            boolean success;
-            if (isFavorite) {
-                success = favoriteService.addFavorite(userId, product.id, accessToken);
-            } else {
-                success = favoriteService.removeFavorite(userId, product.id, accessToken);
+                Intent intent = new Intent(this, CartActivity.class);
+                startActivity(intent);
             }
-
-            runOnUiThread(() -> {
-                if (success) {
-                    String message = isFavorite ? "❤️ Adicionado aos favoritos!" : "💔 Removido dos favoritos";
-                    Toast.makeText(this, message, Toast.LENGTH_SHORT).show();
-                } else {
-                    // Reverte se deu erro
-                    isFavorite = !isFavorite;
-                    updateFavoriteButton();
-                    Toast.makeText(this, "Erro ao atualizar favoritos", Toast.LENGTH_SHORT).show();
-                }
-            });
         });
-    }
 
-    private void updateFavoriteButton() {
-        if (isFavorite) {
-            btnFavorite.setImageResource(R.drawable.ic_favorite);
-            btnFavorite.setColorFilter(ContextCompat.getColor(this, R.color.red_500));
-        } else {
-            btnFavorite.setImageResource(R.drawable.ic_favorite_border);
-            btnFavorite.setColorFilter(ContextCompat.getColor(this, R.color.gray_400));
+
+        backBTN.setOnClickListener(v -> finish());
+
+        // evita NullPointerException se não existir ActionBar
+        if (getSupportActionBar() != null) {
+            getSupportActionBar().hide();
         }
-    }
-
-    private String formatCurrency(double value) {
-        return NumberFormat.getCurrencyInstance(new Locale("pt", "BR")).format(value);
     }
 
     @Override
     protected void onDestroy() {
         super.onDestroy();
-        if (exec != null) {
-            exec.shutdownNow();
-        }
+        if (exec != null) exec.shutdownNow();
     }
 }

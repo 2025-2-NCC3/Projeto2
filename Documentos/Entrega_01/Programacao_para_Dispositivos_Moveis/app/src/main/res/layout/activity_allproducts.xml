@@ -1,12 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:app="http://schemas.android.com/apk/res-auto"
-    xmlns:tools="http://schemas.android.com/tools"
-    android:orientation="vertical"
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@color/white">
-
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools">
 
     <!-- Container principal -->
     <androidx.appcompat.widget.Toolbar
@@ -15,7 +12,8 @@
         android:layout_height="80dp"
         android:background="@color/green"
         android:elevation="4dp"
-        android:theme="@style/ThemeOverlay.AppCompat.Dark.ActionBar">
+        android:theme="@style/ThemeOverlay.AppCompat.Dark.ActionBar"
+        tools:ignore="MissingConstraints">
 
         <androidx.constraintlayout.widget.ConstraintLayout
             android:paddingTop="20dp"
@@ -26,7 +24,7 @@
                 android:id="@+id/txtOfertas"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Ofertas"
+                android:text="Nosso Catálogo"
                 android:textSize="25dp"
                 android:textColor="@color/white"
                 android:textStyle="bold"
@@ -61,11 +59,14 @@
         </androidx.constraintlayout.widget.ConstraintLayout>
     </androidx.appcompat.widget.Toolbar>
 
-
     <FrameLayout
-        android:layout_width="match_parent"
+        android:id="@+id/contentFrame"
+        android:layout_width="0dp"
         android:layout_height="0dp"
-        android:layout_weight="1">
+        app:layout_constraintTop_toBottomOf="@id/toolbar"
+        app:layout_constraintBottom_toTopOf="@id/bottomNav"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent">
 
         <!-- Shimmer enquanto carrega -->
         <com.facebook.shimmer.ShimmerFrameLayout
@@ -90,7 +91,6 @@
             app:spanCount="2" />
     </FrameLayout>
 
-    <!-- Barra de navegação inferior -->
     <include
         android:id="@+id/bottomNav"
         layout="@layout/activity_navbar"
@@ -100,4 +100,4 @@
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintBottom_toBottomOf="parent"/>
 
-</LinearLayout>
+</androidx.constraintlayout.widget.ConstraintLayout>

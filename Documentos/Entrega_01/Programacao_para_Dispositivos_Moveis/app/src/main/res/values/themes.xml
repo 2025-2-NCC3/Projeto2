@@ -15,10 +15,13 @@
 
         <!-- Desativa totalmente dark mode -->
         <item name="android:forceDarkAllowed">false</item>
+
+
     </style>
 
     <!-- Tema principal -->
     <style name="Theme.AplicativoComedoriaDaTia" parent="Base.Theme.AplicativoComedoriaDaTia" />
+
 
     <!-- Variante sem ActionBar (para telas com Toolbar própria) -->
     <style name="Theme.AplicativoComedoriaDaTia.NoActionBar" parent="Theme.AplicativoComedoriaDaTia">

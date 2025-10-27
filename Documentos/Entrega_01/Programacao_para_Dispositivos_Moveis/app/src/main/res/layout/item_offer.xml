@@ -5,7 +5,8 @@
     android:layout_height="wrap_content"
     android:layout_margin="8dp"
     card_view:cardUseCompatPadding="true"
-    card_view:cardCornerRadius="12dp">
+    card_view:cardCornerRadius="12dp"
+    card_view:cardElevation="4dp">
 
     <LinearLayout
         android:layout_width="match_parent"
@@ -13,30 +14,46 @@
         android:orientation="vertical"
         android:padding="8dp">
 
+        <!-- Imagem do produto em oferta -->
         <ImageView
-            android:id="@+id/img"
+            android:id="@+id/imgOffer"
             android:layout_width="match_parent"
             android:layout_height="140dp"
             android:scaleType="centerCrop"
             android:contentDescription="@string/app_name" />
 
+        <!-- Nome do produto -->
         <TextView
-            android:id="@+id/name"
+            android:id="@+id/tvOfferName"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="8dp"
             android:textStyle="bold"
             android:textSize="16sp"
             android:maxLines="2"
-            android:ellipsize="end" />
+            android:ellipsize="end"
+            android:textColor="@android:color/black" />
 
+        <!-- Preço da oferta -->
         <TextView
-            android:id="@+id/price"
+            android:id="@+id/tvOfferPrice"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="4dp"
             android:textSize="14sp"
+            android:textColor="@color/green"
+            android:textStyle="bold"
             android:maxLines="1" />
 
+        <!-- Descrição curta ou validade da promoção -->
+        <TextView
+            android:id="@+id/tvOfferDesc"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="2dp"
+            android:textSize="12sp"
+            android:textColor="@android:color/darker_gray"
+            android:maxLines="2"
+            android:ellipsize="end" />
     </LinearLayout>
 </androidx.cardview.widget.CardView>
