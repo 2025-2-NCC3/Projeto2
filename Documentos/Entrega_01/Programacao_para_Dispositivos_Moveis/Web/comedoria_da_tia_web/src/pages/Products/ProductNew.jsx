@@ -47,12 +47,12 @@ export default function ProductNew() {
   const [price, setPrice] = useState("");
   const [costEstimated, setCostEstimated] = useState("");
 
-  // 🔽 NOVO: estados relacionados à imagem
-  const [imageFile, setImageFile] = useState(null);          // upload manual
-  const [imageUrlManual, setImageUrlManual] = useState("");  // URL digitada
-  const [galleryList, setGalleryList] = useState([]);        // lista supabase.product_images
-  const [selectedGalleryId, setSelectedGalleryId] = useState(""); // id escolhido
-  const [previewUrl, setPreviewUrl] = useState("");          // o que vai pro <img>
+  // Estados relacionados à imagem
+  const [imageFile, setImageFile] = useState(null);
+  const [imageUrlManual, setImageUrlManual] = useState("");
+  const [galleryList, setGalleryList] = useState([]);
+  const [selectedGalleryId, setSelectedGalleryId] = useState("");
+  const [previewUrl, setPreviewUrl] = useState("");
 
   const [saving, setSaving] = useState(false);
 
@@ -65,11 +65,12 @@ export default function ProductNew() {
   ]);
 
   const autoSlug = useMemo(() => slugify(name), [name]);
+  
   function onNameBlur() {
     if (!slug) setSlug(autoSlug);
   }
 
-  // 🔽 Carrega imagens já salvas na tabela product_images ao montar
+  // Carrega imagens da galeria
   useEffect(() => {
     async function fetchGallery() {
       const { data, error } = await supabase
@@ -86,23 +87,21 @@ export default function ProductNew() {
     fetchGallery();
   }, []);
 
-  // 🔽 sempre que usuário escolhe uma imagem da galeria
+  // Atualiza preview quando seleciona da galeria
   useEffect(() => {
     if (!selectedGalleryId) return;
     const item = galleryList.find((g) => String(g.id) === String(selectedGalleryId));
     if (item) {
       setPreviewUrl(item.image_url || item.thumb_url || "");
-      // limpamos outras fontes de imagem pra não dar conflito
       setImageFile(null);
       setImageUrlManual("");
     }
   }, [selectedGalleryId, galleryList]);
 
-  // 🔽 sempre que usuário digita URL manual
+  // Atualiza preview quando digita URL manual
   useEffect(() => {
     if (!imageUrlManual.trim()) return;
     setPreviewUrl(imageUrlManual.trim());
-    // limpamos upload e seleção galeria
     setImageFile(null);
     setSelectedGalleryId("");
   }, [imageUrlManual]);
@@ -112,7 +111,6 @@ export default function ProductNew() {
     if (!file) return;
     setImageFile(file);
     setPreviewUrl(URL.createObjectURL(file));
-    // limpamos outras fontes
     setImageUrlManual("");
     setSelectedGalleryId("");
   }
@@ -132,6 +130,7 @@ export default function ProductNew() {
         title: "Nome obrigatório",
         message: "Informe o nome do produto.",
       });
+    
     const finalSlug = slug || autoSlug;
     if (!finalSlug)
       return notify({
@@ -140,22 +139,22 @@ export default function ProductNew() {
         message: "Não foi possível gerar o slug.",
       });
 
-    const priceNumber = Number(String(price).replace(",", "."));
-    if (!priceNumber || priceNumber <= 0)
+    // ✅ PREÇO OPCIONAL: Se informado, valida; se vazio, fica null
+    const priceNumber = price ? Number(String(price).replace(",", ".")) : null;
+    if (price && (!priceNumber || priceNumber <= 0))
       return notify({
         type: "error",
         title: "Preço inválido",
-        message: "Informe um preço válido (ex.: 7.50).",
+        message: "Informe um preço válido (ex.: 7.50) ou deixe em branco.",
       });
 
-    const costNumber = costEstimated
-      ? Number(String(costEstimated).replace(",", "."))
-      : 0;
-    if (Number.isNaN(costNumber))
+    // ✅ CUSTO OPCIONAL: Se informado, valida; se vazio, fica null
+    const costNumber = costEstimated ? Number(String(costEstimated).replace(",", ".")) : null;
+    if (costEstimated && Number.isNaN(costNumber))
       return notify({
         type: "error",
         title: "Custo inválido",
-        message: "Custo estimado deve ser numérico.",
+        message: "Custo estimado deve ser numérico ou deixe em branco.",
       });
 
     const featuresObj = pairsToObject(features);
@@ -165,14 +164,10 @@ export default function ProductNew() {
     try {
       // ======================================================
       // RESOLVER image_url FINAL
-      // Prioridade:
-      // 1. Upload de arquivo novo
-      // 2. URL manual digitada
-      // 3. Imagem escolhida da galeria
       // ======================================================
       let finalImageUrl = null;
 
-      // 1) Se teve upload de arquivo direto
+      // 1) Upload de arquivo novo
       if (imageFile) {
         const ext = imageFile.name.split(".").pop()?.toLowerCase() || "jpg";
         const filePath = `products/${finalSlug}_${Date.now()}.${ext}`;
@@ -200,11 +195,11 @@ export default function ProductNew() {
           .getPublicUrl(filePath);
         finalImageUrl = pub?.publicUrl || null;
       }
-      // 2) Se não fez upload mas digitou URL manual
+      // 2) URL manual digitada
       else if (imageUrlManual.trim()) {
         finalImageUrl = imageUrlManual.trim();
       }
-      // 3) Se escolheu imagem da galeria interna
+      // 3) Imagem da galeria interna
       else if (selectedGalleryId) {
         const item = galleryList.find(
           (g) => String(g.id) === String(selectedGalleryId)
@@ -212,7 +207,7 @@ export default function ProductNew() {
         finalImageUrl = item?.image_url || item?.thumb_url || null;
       }
 
-      // 4) Inserir produto
+      // ✅ APENAS SALVAR NA TABELA PRODUCTS (NÃO SALVA EM PRODUCT_PRICES)
       const { data: prod, error: pErr } = await supabase
         .from("products")
         .insert({
@@ -223,13 +218,11 @@ export default function ProductNew() {
           features: featuresObj,
           nutrition: nutritionObj,
           is_active: true,
-          cost_estimated:
-            !Number.isNaN(costNumber) && costNumber > 0
-              ? costNumber
-              : priceNumber,
+          cost_estimated: costNumber, // ✅ Pode ser null
         })
         .select("id, slug")
         .single();
+        
       if (pErr) {
         notify({
           type: "error",
@@ -240,27 +233,16 @@ export default function ProductNew() {
         return;
       }
 
-      // 5) Histórico de preços
-      const { error: priceErr } = await supabase.from("product_prices").insert({
-        product_id: prod.id,
-        price: priceNumber,
-      });
-      if (priceErr) {
-        notify({
-          type: "warning",
-          title: "Produto salvo, mas…",
-          message:
-            "Falha ao registrar preço. Abra o produto e cadastre o preço.",
-        });
-        setSaving(false);
-        return;
-      }
-
+      // ✅ NÃO SALVA MAIS EM PRODUCT_PRICES - Produto normal do catálogo
+      
       notify({
         type: "success",
         title: "Produto cadastrado",
-        message: "O produto foi criado com sucesso!",
+        message: priceNumber 
+          ? "Produto criado com preço definido!" 
+          : "Produto criado! Defina o preço depois.",
       });
+      
       setTimeout(() => navigate("/app/produtos", { replace: true }), 700);
     } catch (err) {
       notify({
@@ -293,7 +275,7 @@ export default function ProductNew() {
         className="pnew-card"
       >
         <div className="pnew-grid">
-          {/* ======================= COLUNA DE IMAGEM ======================= */}
+          {/* Coluna de imagem */}
           <div className="pnew-imagecol">
             {/* Prévia */}
             <div className="pnew-imagebox">
@@ -362,16 +344,16 @@ export default function ProductNew() {
                 ))}
               </select>
               <small className="pnew-help">
-                Essa lista vem de product_images (Pixabay).:contentReference[oaicite:0]{}
+                Essa lista vem de product_images (Pixabay).
               </small>
             </div>
 
             <p className="pnew-help">
-              Formatos: JPG/PNG/WebP. Ideal ~1000px.:contentReference[oaicite:1]{}
+              Formatos: JPG/PNG/WebP. Ideal ~1000px.
             </p>
           </div>
 
-          {/* ======================= COLUNA DE DADOS ======================= */}
+          {/* Coluna de dados */}
           <div className="pnew-fields">
             <label className="pnew-label">
               <span>
@@ -411,24 +393,27 @@ export default function ProductNew() {
               />
             </label>
 
+            {/* ✅ PREÇO E CUSTO OPCIONAIS */}
             <div className="pnew-row">
               <label className="pnew-label">
-                <span>Preço (R$)</span>
+                <span>Preço (R$) - Opcional</span>
                 <input
                   inputMode="decimal"
-                  placeholder="7.50"
+                  placeholder="deixe em branco para definir depois"
                   value={price}
                   onChange={(e) => setPrice(e.target.value)}
                 />
+                <small>Preço de venda ao público</small>
               </label>
               <label className="pnew-label">
-                <span>Custo estimado (R$)</span>
+                <span>Custo estimado (R$) - Opcional</span>
                 <input
                   inputMode="decimal"
-                  placeholder="opcional"
+                  placeholder="deixe em branco se não souber"
                   value={costEstimated}
                   onChange={(e) => setCostEstimated(e.target.value)}
                 />
+                <small>Para controle interno</small>
               </label>
             </div>
 
