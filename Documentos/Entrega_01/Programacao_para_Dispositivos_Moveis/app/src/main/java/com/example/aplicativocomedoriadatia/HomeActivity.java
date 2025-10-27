@@ -12,6 +12,7 @@ import android.view.MenuItem;
 import android.view.View;
 import android.view.animation.ScaleAnimation;
 import android.widget.Button;
+import android.widget.ImageButton;
 import android.widget.LinearLayout;
 import android.widget.Toast;
 
@@ -74,7 +75,6 @@ public class HomeActivity extends AppCompatActivity {
     private View btnSeeAll;
     private LinearLayout chipsContainer;
     private TextInputEditText etSearch;
-    private LinearLayout navInicio, navPedidos, navOfertas, navPerfil;
 
     // ===== Dados =====
     private final ProductAdapter adapter = new ProductAdapter();
@@ -90,6 +90,9 @@ public class HomeActivity extends AppCompatActivity {
     private final Handler searchHandler = new Handler(Looper.getMainLooper());
     private Runnable searchRunnable;
 
+    private ImageButton cartBTN;
+
+
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
         AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_NO);
@@ -104,10 +107,8 @@ public class HomeActivity extends AppCompatActivity {
         btnSeeAll = findViewById(R.id.btnSeeAll);
         chipsContainer = findViewById(R.id.chipsContainer);
         etSearch = findViewById(R.id.etSearch);
-        navInicio = findViewById(R.id.nav_inicio);
-        navPedidos = findViewById(R.id.nav_pedidos);
-        navOfertas = findViewById(R.id.nav_ofertas);
-        navPerfil = findViewById(R.id.nav_perfil);
+
+        cartBTN = findViewById(R.id.cartBTN);
 
         toolbar = findViewById(R.id.toolbar);
         if (toolbar != null) setSupportActionBar(toolbar);
@@ -115,30 +116,18 @@ public class HomeActivity extends AppCompatActivity {
         setupHeaderAndChips();
         setupRecycler();
         setupRetry();
-        setupBottomNav();
+        NavbarHelper.setup(this);
         setupSearch();
 
         executor = Executors.newSingleThreadExecutor();
         fetchProducts(null);
+
+        cartBTN.setOnClickListener(v -> {
+            Intent it = new Intent(this, CartActivity.class);
+            startActivity(it);
+        });
     }
 
-    // ================= MENU do Carrinho =================
-    @Override
-    public boolean onCreateOptionsMenu(Menu menu) {
-        getMenuInflater().inflate(R.menu.menu_home_top, menu);
-
-        MenuItem cartItem = menu.findItem(R.id.action_cart);
-        View actionView = cartItem.getActionView();
-        tvBadge = actionView.findViewById(R.id.tvBadge);
-
-        // clique no ícone do carrinho → abre tela
-        actionView.setOnClickListener(v ->
-                startActivity(new Intent(this, CartActivity.class))
-        );
-
-        updateCartBadge(false);
-        return true;
-    }
 
     @Override
     public boolean onPrepareOptionsMenu(Menu menu) {
@@ -219,40 +208,6 @@ public class HomeActivity extends AppCompatActivity {
         return et != null && et.getText() != null ? et.getText().toString() : "";
     }
 
-    // ================= Bottom Navigation =================
-    private void setupBottomNav() {
-        if (navInicio == null || navPedidos == null || navOfertas == null || navPerfil == null) return;
-
-        View.OnClickListener listener = v -> {
-            setSelectedTab(v.getId());
-            if (v.getId() == R.id.nav_inicio) {
-                if (etSearch != null) etSearch.setText("");
-                selectedCategory = "Todos";
-                if (chipsController != null) chipsController.selectById(R.id.chipTodos);
-                fetchProducts(null);
-            } else if (v.getId() == R.id.nav_pedidos) {
-                Toast.makeText(this, "Pedidos (em breve)", Toast.LENGTH_SHORT).show();
-            } else if (v.getId() == R.id.nav_ofertas) {
-                // agora abre a OffersActivity de verdade
-                startActivity(new Intent(this, OffersActivity.class));
-            } else if (v.getId() == R.id.nav_perfil) {
-                Toast.makeText(this, "Perfil (em breve)", Toast.LENGTH_SHORT).show();
-            }
-        };
-
-        navInicio.setOnClickListener(listener);
-        navPedidos.setOnClickListener(listener);
-        navOfertas.setOnClickListener(listener);
-        navPerfil.setOnClickListener(listener);
-        setSelectedTab(R.id.nav_inicio);
-    }
-
-    private void setSelectedTab(int viewId) {
-        navInicio.setSelected(viewId == R.id.nav_inicio);
-        navPedidos.setSelected(viewId == R.id.nav_pedidos);
-        navOfertas.setSelected(viewId == R.id.nav_ofertas);
-        navPerfil.setSelected(viewId == R.id.nav_perfil);
-    }
 
     // ================= Conteúdo / produtos =================
     private void setupHeaderAndChips() {
@@ -277,8 +232,11 @@ public class HomeActivity extends AppCompatActivity {
 
     private void openProductDetails(Product product) {
         if (product == null) return;
+
         Intent it = new Intent(this, ProductDetailsActivity.class);
         it.putExtra("product", product);
+        it.putExtra("price", product.cost_estimated); // preço original
+        it.putExtra("is_offer", false); // produto normal
         startActivity(it);
     }
 

@@ -1,9 +1,9 @@
-// app/src/main/java/com/example/aplicativocomedoriadatia/ProductDetailsActivity.java
 package com.example.aplicativocomedoriadatia;
 
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.os.Bundle;
+import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -25,6 +25,9 @@ public class ProductDetailsActivity extends AppCompatActivity {
 
     private ExecutorService exec;
 
+    private ImageButton backBTN;
+
+
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -35,7 +38,12 @@ public class ProductDetailsActivity extends AppCompatActivity {
         getSupportActionBar().setDisplayHomeAsUpEnabled(true);
         tb.setNavigationOnClickListener(v -> onBackPressed());
 
+        // --- Recebe dados vindos do Intent ---
         Product p = (Product) getIntent().getSerializableExtra("product");
+        double priceValue = getIntent().getDoubleExtra("price", 0.0);
+        String endsAt = getIntent().getStringExtra("ends_at");
+        boolean isOffer = getIntent().getBooleanExtra("is_offer", false);
+
         if (p == null) {
             Toast.makeText(this, "Produto inválido", Toast.LENGTH_SHORT).show();
             finish();
@@ -43,16 +51,39 @@ public class ProductDetailsActivity extends AppCompatActivity {
         }
 
         ImageView img = findViewById(R.id.img);
-        TextView name  = findViewById(R.id.name);
+        TextView name = findViewById(R.id.name);
         TextView price = findViewById(R.id.price);
-        TextView desc  = findViewById(R.id.description);
+        TextView desc = findViewById(R.id.description);
+        TextView validity = findViewById(R.id.validity);
+
+        backBTN = findViewById(R.id.backBTN);
+
+
 
         name.setText(p.name != null ? p.name : "Produto");
-        price.setText(NumberFormat.getCurrencyInstance(new Locale("pt","BR"))
-                .format(p.cost_estimated));
         desc.setText(p.description != null ? p.description : "Sem descrição.");
 
-        // Carrega imagem remota de forma simples (sem libs)
+        // --- Define o preço ---
+        price.setText(NumberFormat.getCurrencyInstance(new Locale("pt", "BR"))
+                .format(priceValue));
+
+        // --- Controle da validade ---
+        if (isOffer) {
+            // Produto veio da tela de ofertas
+            if (endsAt != null && !endsAt.isEmpty()) {
+                String data = endsAt.split("T")[0];
+                validity.setText("Válido até: " + data);
+                validity.setVisibility(TextView.VISIBLE);
+            } else {
+                validity.setText("Promoção por tempo limitado");
+                validity.setVisibility(TextView.VISIBLE);
+            }
+        } else {
+            // Produto normal — não exibe validade
+            validity.setVisibility(TextView.GONE);
+        }
+
+        // --- Carrega imagem (sem Glide) ---
         if (p.image_url != null && p.image_url.startsWith("http")) {
             exec = Executors.newSingleThreadExecutor();
             exec.execute(() -> {
@@ -60,7 +91,6 @@ public class ProductDetailsActivity extends AppCompatActivity {
                     Bitmap bmp = BitmapFactory.decodeStream(in);
                     runOnUiThread(() -> img.setImageBitmap(bmp));
                 } catch (Exception ignored) {
-                    // fallback silencioso
                 }
             });
         } else {
@@ -70,6 +100,11 @@ public class ProductDetailsActivity extends AppCompatActivity {
         findViewById(R.id.btnAdd).setOnClickListener(v ->
                 Toast.makeText(this, "Adicionado ao carrinho!", Toast.LENGTH_SHORT).show()
         );
+
+        backBTN.setOnClickListener(v -> finish());
+
+        getSupportActionBar().hide();
+
     }
 
     @Override
@@ -77,4 +112,5 @@ public class ProductDetailsActivity extends AppCompatActivity {
         super.onDestroy();
         if (exec != null) exec.shutdownNow();
     }
+
 }

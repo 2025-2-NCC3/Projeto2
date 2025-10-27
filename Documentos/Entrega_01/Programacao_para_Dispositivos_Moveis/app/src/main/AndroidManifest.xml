@@ -73,7 +73,7 @@
 
         <activity android:name=".OffersActivity"
             android:exported="false"
-            android:theme="@style/Theme.AplicativoComedoriaDaTia" />
+            android:theme="@style/Theme.AplicativoComedoriaDaTia"/>
 
 
 </application>

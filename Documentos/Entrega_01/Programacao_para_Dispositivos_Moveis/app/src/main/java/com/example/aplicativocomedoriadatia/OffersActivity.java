@@ -1,14 +1,14 @@
 package com.example.aplicativocomedoriadatia;
 
-import android.content.Context;
 import android.content.Intent;
-import android.net.Uri;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
+import android.view.Window;
 import android.view.animation.ScaleAnimation;
+import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -17,14 +17,15 @@ import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.app.AppCompatDelegate;
 import androidx.appcompat.widget.Toolbar;
+import androidx.core.content.ContextCompat;
 import androidx.recyclerview.widget.GridLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.aplicativocomedoriadatia.cart.CartItem;
 import com.example.aplicativocomedoriadatia.cart.CartManager;
-import com.example.aplicativocomedoriadatia.model.Product;
+import com.example.aplicativocomedoriadatia.model.ProductPrice;
 import com.example.aplicativocomedoriadatia.network.SupabaseClient;
-import com.example.aplicativocomedoriadatia.ui.ProductAdapter;
+import com.example.aplicativocomedoriadatia.ui.OfferAdapter;
 import com.facebook.shimmer.ShimmerFrameLayout;
 import com.google.gson.reflect.TypeToken;
 
@@ -41,11 +42,15 @@ public class OffersActivity extends AppCompatActivity {
     private RecyclerView recycler;
     private View errorBox;
 
-    private final ProductAdapter adapter = new ProductAdapter();
+    private final OfferAdapter adapter = new OfferAdapter();
     private ExecutorService executor;
 
     private View cartActionView;
     private TextView tvBadge;
+
+    private ImageButton backBTN;
+
+    private ImageButton cartBTN;
 
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
@@ -53,25 +58,34 @@ public class OffersActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_offers);
 
-        // Toolbar
         Toolbar toolbar = findViewById(R.id.toolbar);
-        setSupportActionBar(toolbar);
-        if (getSupportActionBar() != null) {
-            getSupportActionBar().setTitle("Ofertas");
-            getSupportActionBar().setDisplayHomeAsUpEnabled(true);
-        }
 
         shimmer = findViewById(R.id.shimmerContainer);
         recycler = findViewById(R.id.recyclerProducts);
         errorBox = findViewById(R.id.errorBox);
+        backBTN = findViewById(R.id.backBTN);
+        cartBTN = findViewById(R.id.cartBTN);
 
-        setupRecycler();
+        recycler.setLayoutManager(new GridLayoutManager(this, 2));
+        recycler.setAdapter(adapter);
+
         executor = Executors.newSingleThreadExecutor();
 
+        setupRecycler();
         fetchOffers();
+        NavbarHelper.setup(this);
+
+        Window window = getWindow();
+        window.setStatusBarColor(ContextCompat.getColor(this, R.color.green));
+
+        backBTN.setOnClickListener(v -> finish());
+
+        cartBTN.setOnClickListener(v -> {
+            Intent it = new Intent(this, CartActivity.class);
+            startActivity(it);
+        });
     }
 
-    // ================= MENU =================
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         getMenuInflater().inflate(R.menu.menu_home_top, menu);
@@ -119,42 +133,19 @@ public class OffersActivity extends AppCompatActivity {
         }
     }
 
-    // ================= RECYCLER =================
-    private void setupRecycler() {
-        recycler.setLayoutManager(new GridLayoutManager(this, 2));
-        recycler.setAdapter(adapter);
-
-        adapter.setOnItemClickListener(product -> {
-            Intent it = new Intent(this, ProductDetailsActivity.class);
-            it.putExtra("product", product);
-            startActivity(it);
-        });
-
-        adapter.setOnAddToCartListener(product -> {
-            CartManager.with(getApplicationContext()).add(product, 1);
-            Toast.makeText(this, "Adicionado ao carrinho!", Toast.LENGTH_SHORT).show();
-            updateCartBadge(true);
-        });
-    }
-
     // ================= FETCH OFERTAS =================
     private void fetchOffers() {
         showLoading();
 
-        final Context appCtx = getApplicationContext();
-
         if (executor == null) executor = Executors.newSingleThreadExecutor();
         executor.execute(() -> {
             try {
-                SupabaseClient api = new SupabaseClient(appCtx);
-                Type type = new TypeToken<List<Product>>(){}.getType();
+                SupabaseClient api = new SupabaseClient(getApplicationContext());
+                Type type = new TypeToken<List<ProductPrice>>(){}.getType();
 
-                // Busca produtos que contenham "promo" ou "oferta" no nome ou descrição
-                String query = Uri.encode("*promo*|*oferta*|*desconto*");
-                String endpoint = "products?select=id,name,description,image_url,cost_estimated&or=(name.ilike." +
-                        query + ",description.ilike." + query + ")&order=created_at.desc";
+                String endpoint = "product_prices?select=id,price,starts_at,ends_at,product:product_id(id,name,description,image_url)&order=starts_at.desc";
 
-                List<Product> list = api.getList(endpoint, type);
+                List<ProductPrice> list = api.getList(endpoint, type);
                 runOnUiThread(() -> showContent(list));
 
             } catch (Exception e) {
@@ -170,11 +161,11 @@ public class OffersActivity extends AppCompatActivity {
         recycler.setVisibility(View.GONE);
     }
 
-    private void showContent(List<Product> products) {
+    private void showContent(List<ProductPrice> offers) {
         shimmer.stopShimmer();
         shimmer.setVisibility(View.GONE);
         recycler.setVisibility(View.VISIBLE);
-        adapter.setItems(products);
+        adapter.setItems(offers);
     }
 
     private void showError(String msg) {
@@ -183,13 +174,22 @@ public class OffersActivity extends AppCompatActivity {
         Toast.makeText(this, msg, Toast.LENGTH_SHORT).show();
     }
 
-    // ================= VOLTAR =================
-    @Override
-    public boolean onOptionsItemSelected(MenuItem item) {
-        if (item.getItemId() == android.R.id.home) {
-            onBackPressed();
-            return true;
-        }
-        return super.onOptionsItemSelected(item);
+    private void setupRecycler() {
+        recycler.setLayoutManager(new GridLayoutManager(this, 2));
+        recycler.setAdapter(adapter);
+
+        adapter.setOnItemClickListener(this::openProductDetails);
     }
+
+    private void openProductDetails(ProductPrice offer) {
+        if (offer == null || offer.product == null) return;
+
+        Intent it = new Intent(this, ProductDetailsActivity.class);
+        it.putExtra("product", offer.product);
+        it.putExtra("price", offer.price); // preço promocional
+        it.putExtra("ends_at", offer.ends_at);
+        it.putExtra("is_offer", true); // identifica que veio da tela de ofertas
+        startActivity(it);
+    }
+
 }
