@@ -15,17 +15,17 @@ import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
 
-import com.example.aplicativocomedoriadatia.model.Product;
 import com.google.android.material.card.MaterialCardView;
 
 import java.io.InputStream;
+import java.net.URL;
 import java.text.NumberFormat;
 import java.util.List;
 import java.util.Locale;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
-public class FavoritesActivity extends AppCompatActivity {
+class FavoritesActivity extends AppCompatActivity {
 
     private LinearLayout favoritesList;
     private LinearLayout emptyState;
@@ -81,6 +81,7 @@ public class FavoritesActivity extends AppCompatActivity {
                 runOnUiThread(this::updateUI);
 
             } catch (Exception e) {
+                e.printStackTrace();
                 runOnUiThread(() -> {
                     Toast.makeText(this, "Erro ao carregar favoritos", Toast.LENGTH_SHORT).show();
                     showEmptyState();
@@ -114,9 +115,7 @@ public class FavoritesActivity extends AppCompatActivity {
         tvFavoritesCount.setText(favoriteProducts.size() + " itens favoritados");
 
         // Limpa a lista atual
-        for (int i = favoritesList.getChildCount() - 1; i >= 1; i--) {
-            favoritesList.removeViewAt(i);
-        }
+        favoritesList.removeAllViews();
 
         // Adiciona os itens favoritos
         for (Product product : favoriteProducts) {
@@ -154,9 +153,12 @@ public class FavoritesActivity extends AppCompatActivity {
     private void loadProductImage(String imageUrl, ImageView imageView) {
         if (imageUrl != null && !imageUrl.isEmpty()) {
             exec.execute(() -> {
-                try (InputStream in = new URL(imageUrl).openStream()) {
+                try {
+                    URL url = new URL(imageUrl);
+                    InputStream in = url.openStream();
                     Bitmap bmp = BitmapFactory.decodeStream(in);
                     runOnUiThread(() -> imageView.setImageBitmap(bmp));
+                    in.close();
                 } catch (Exception e) {
                     runOnUiThread(() ->
                             imageView.setImageResource(R.drawable.ic_fastfood_24)
@@ -199,14 +201,19 @@ public class FavoritesActivity extends AppCompatActivity {
 
     private void openProductDetails(Product product) {
         Intent intent = new Intent(this, ProductDetailsActivity.class);
-        intent.putExtra("product", product);
+        intent.putExtra("product_id", product.id);
+        intent.putExtra("product_name", product.name);
+        intent.putExtra("product_description", product.description);
+        intent.putExtra("product_price", product.cost_estimated);
+        intent.putExtra("product_image", product.image_url);
         startActivity(intent);
     }
 
     public void onExploreProductsClick(View view) {
-        // TODO: Navegar para tela de produtos
-        Toast.makeText(this, "Explorar produtos", Toast.LENGTH_SHORT).show();
-        finish(); // Volta para tela anterior
+        // Navegar para tela de produtos (HomeActivity)
+        Intent intent = new Intent(this, HomeActivity.class);
+        startActivity(intent);
+        finish();
     }
 
     private String formatCurrency(double value) {
