@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useMemo, useState, useEffect } from "react";
 import { useNavigate, Link } from "react-router-dom";
 // eslint-disable-next-line no-unused-vars
 import { motion } from "framer-motion";
@@ -46,8 +46,14 @@ export default function ProductNew() {
   const [description, setDescription] = useState("");
   const [price, setPrice] = useState("");
   const [costEstimated, setCostEstimated] = useState("");
-  const [imageFile, setImageFile] = useState(null);
-  const [previewUrl, setPreviewUrl] = useState("");
+
+  // 🔽 NOVO: estados relacionados à imagem
+  const [imageFile, setImageFile] = useState(null);          // upload manual
+  const [imageUrlManual, setImageUrlManual] = useState("");  // URL digitada
+  const [galleryList, setGalleryList] = useState([]);        // lista supabase.product_images
+  const [selectedGalleryId, setSelectedGalleryId] = useState(""); // id escolhido
+  const [previewUrl, setPreviewUrl] = useState("");          // o que vai pro <img>
+
   const [saving, setSaving] = useState(false);
 
   const [features, setFeatures] = useState([{ key: "peso_g", value: "" }]);
@@ -63,11 +69,52 @@ export default function ProductNew() {
     if (!slug) setSlug(autoSlug);
   }
 
+  // 🔽 Carrega imagens já salvas na tabela product_images ao montar
+  useEffect(() => {
+    async function fetchGallery() {
+      const { data, error } = await supabase
+        .from("product_images")
+        .select("id, image_url, thumb_url, tags")
+        .order("id", { ascending: false })
+        .limit(50);
+      if (error) {
+        console.error("Erro carregando galeria:", error);
+        return;
+      }
+      setGalleryList(data || []);
+    }
+    fetchGallery();
+  }, []);
+
+  // 🔽 sempre que usuário escolhe uma imagem da galeria
+  useEffect(() => {
+    if (!selectedGalleryId) return;
+    const item = galleryList.find((g) => String(g.id) === String(selectedGalleryId));
+    if (item) {
+      setPreviewUrl(item.image_url || item.thumb_url || "");
+      // limpamos outras fontes de imagem pra não dar conflito
+      setImageFile(null);
+      setImageUrlManual("");
+    }
+  }, [selectedGalleryId, galleryList]);
+
+  // 🔽 sempre que usuário digita URL manual
+  useEffect(() => {
+    if (!imageUrlManual.trim()) return;
+    setPreviewUrl(imageUrlManual.trim());
+    // limpamos upload e seleção galeria
+    setImageFile(null);
+    setSelectedGalleryId("");
+  }, [imageUrlManual]);
+
   function onImageChange(e) {
     const file = e.target.files?.[0];
     if (!file) return;
     setImageFile(file);
     setPreviewUrl(URL.createObjectURL(file));
+    // limpamos outras fontes
+    setImageUrlManual("");
+    setSelectedGalleryId("");
   }
 
   const addRow = (setFn) => setFn((rows) => [...rows, { key: "", value: "" }]);
@@ -116,8 +163,16 @@ export default function ProductNew() {
 
     setSaving(true);
     try {
-      // 1) Upload da imagem (se houver)
-      let image_url = null;
+      // ======================================================
+      // RESOLVER image_url FINAL
+      // Prioridade:
+      // 1. Upload de arquivo novo
+      // 2. URL manual digitada
+      // 3. Imagem escolhida da galeria
+      // ======================================================
+      let finalImageUrl = null;
+
+      // 1) Se teve upload de arquivo direto
       if (imageFile) {
         const ext = imageFile.name.split(".").pop()?.toLowerCase() || "jpg";
         const filePath = `products/${finalSlug}_${Date.now()}.${ext}`;
@@ -140,27 +195,38 @@ export default function ProductNew() {
           return;
         }
 
-        // URL pública (bucket público)
         const { data: pub } = supabase.storage
           .from("products")
           .getPublicUrl(filePath);
-        image_url = pub?.publicUrl || null;
+        finalImageUrl = pub?.publicUrl || null;
+      }
+      // 2) Se não fez upload mas digitou URL manual
+      else if (imageUrlManual.trim()) {
+        finalImageUrl = imageUrlManual.trim();
+      }
+      // 3) Se escolheu imagem da galeria interna
+      else if (selectedGalleryId) {
+        const item = galleryList.find(
+          (g) => String(g.id) === String(selectedGalleryId)
+        );
+        finalImageUrl = item?.image_url || item?.thumb_url || null;
       }
 
-      // 2) Inserir produto
+      // 4) Inserir produto
       const { data: prod, error: pErr } = await supabase
         .from("products")
         .insert({
           name: name.trim(),
           slug: finalSlug,
           description: description || null,
-          image_url,
+          image_url: finalImageUrl || null,
           features: featuresObj,
           nutrition: nutritionObj,
           is_active: true,
-          // 👇 se custo não informado, usa o preço para "aparecer na tabela"
           cost_estimated:
-            !Number.isNaN(costNumber) && costNumber > 0 ? costNumber : priceNumber,
+            !Number.isNaN(costNumber) && costNumber > 0
+              ? costNumber
+              : priceNumber,
         })
         .select("id, slug")
         .single();
@@ -174,7 +240,7 @@ export default function ProductNew() {
         return;
       }
 
-      // 3) Inserir preço vigente (histórico de preços)
+      // 5) Histórico de preços
       const { error: priceErr } = await supabase.from("product_prices").insert({
         product_id: prod.id,
         price: priceNumber,
@@ -227,8 +293,9 @@ export default function ProductNew() {
         className="pnew-card"
       >
         <div className="pnew-grid">
-          {/* Imagem */}
+          {/* ======================= COLUNA DE IMAGEM ======================= */}
           <div className="pnew-imagecol">
+            {/* Prévia */}
             <div className="pnew-imagebox">
               {previewUrl ? (
                 <img src={previewUrl} alt="Prévia" />
@@ -240,9 +307,10 @@ export default function ProductNew() {
               )}
             </div>
 
+            {/* Upload direto */}
             <label className="pnew-upload">
               <UploadCloud />
-              <span>Selecionar imagem</span>
+              <span>Selecionar arquivo local</span>
               <input
                 type="file"
                 accept="image/*"
@@ -251,10 +319,59 @@ export default function ProductNew() {
               />
             </label>
 
-            <p className="pnew-help">Formatos: JPG/PNG/WebP. Ideal ~1000px.</p>
+            {/* URL manual */}
+            <div className="pnew-label">
+              <span style={{ fontSize: 13, fontWeight: 600, color: "var(--text)" }}>
+                Ou URL da imagem
+              </span>
+              <input
+                type="url"
+                placeholder="https://.../minha-imagem.png"
+                value={imageUrlManual}
+                onChange={(e) => setImageUrlManual(e.target.value)}
+              />
+              <small className="pnew-help">
+                Se preencher aqui, ignora o upload.
+              </small>
+            </div>
+
+            {/* Selecionar da galeria interna */}
+            <div className="pnew-label">
+              <span style={{ fontSize: 13, fontWeight: 600, color: "var(--text)" }}>
+                Ou escolher da galeria salva
+              </span>
+              <select
+                value={selectedGalleryId}
+                onChange={(e) => setSelectedGalleryId(e.target.value)}
+                className="pnew-gallery-select"
+                style={{
+                  width: "100%",
+                  borderRadius: 10,
+                  padding: "10px 12px",
+                  border: "1px solid var(--border)",
+                  background: "rgba(255,255,255,.06)",
+                  color: "var(--text)",
+                  outline: "none",
+                }}
+              >
+                <option value="">-- Nenhuma selecionada --</option>
+                {galleryList.map((img) => (
+                  <option key={img.id} value={img.id}>
+                    {img.tags || img.image_url || img.thumb_url}
+                  </option>
+                ))}
+              </select>
+              <small className="pnew-help">
+                Essa lista vem de product_images (Pixabay).:contentReference[oaicite:0]{}
+              </small>
+            </div>
+
+            <p className="pnew-help">
+              Formatos: JPG/PNG/WebP. Ideal ~1000px.:contentReference[oaicite:1]{}
+            </p>
           </div>
 
-          {/* Dados */}
+          {/* ======================= COLUNA DE DADOS ======================= */}
           <div className="pnew-fields">
             <label className="pnew-label">
               <span>
