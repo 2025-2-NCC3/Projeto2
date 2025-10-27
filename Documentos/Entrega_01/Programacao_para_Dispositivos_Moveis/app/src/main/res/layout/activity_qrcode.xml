@@ -102,8 +102,9 @@
             android:textColor="#FF9800"
             android:gravity="center"
             android:layout_marginTop="16dp"
-            android:padding="8dp"
+            android:padding="7dpdp"
             android:background="#FFF3E0"/>
 
     </LinearLayout>
 </ScrollView>
+

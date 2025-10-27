@@ -14,7 +14,7 @@ import androidx.appcompat.app.AppCompatActivity;
 import com.google.android.material.card.MaterialCardView;
 
 public class PaymentActivity extends AppCompatActivity {
-
+//arrumado
     private RadioGroup rgPaymentMethod;
     private Button btnProcessPayment;
     private TextView tvAmount, tvOrderSummary;

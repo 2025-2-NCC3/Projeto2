@@ -16,7 +16,7 @@ import com.google.zxing.common.BitMatrix;
 import com.google.zxing.qrcode.QRCodeWriter;
 
 public class QrCodeActivity extends AppCompatActivity {
-
+//arrumado
     private ImageView ivQrCode;
     private TextView tvAmount, tvTimer;
     private Handler timerHandler = new Handler();

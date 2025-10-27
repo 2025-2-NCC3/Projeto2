@@ -18,7 +18,7 @@ import com.example.aplicativocomedoriadatia.ui.CartAdapter;
 import java.util.List;
 
 public class CartActivity extends AppCompatActivity implements CartAdapter.CartActions {
-
+//arrumado
     private RecyclerView recycler;
     private TextView tvTotal;
     private Button btnCheckout, btnContinue;
