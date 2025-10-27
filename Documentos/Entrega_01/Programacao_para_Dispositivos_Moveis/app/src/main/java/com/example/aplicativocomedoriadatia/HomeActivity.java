@@ -212,8 +212,10 @@ public class HomeActivity extends AppCompatActivity {
     // ================= Conteúdo / produtos =================
     private void setupHeaderAndChips() {
         if (btnSeeAll != null) {
-            btnSeeAll.setOnClickListener(v ->
-                    Toast.makeText(this, "Abrir lista completa", Toast.LENGTH_SHORT).show());
+            btnSeeAll.setOnClickListener(v -> {
+                Intent it = new Intent(this, AllProductsActivity.class);
+                startActivity(it);
+            });
         }
 
         if (chipsContainer != null) {

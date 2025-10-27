@@ -75,6 +75,12 @@
             android:exported="false"
             android:theme="@style/Theme.AplicativoComedoriaDaTia"/>
 
+        <activity android:name=".AllProductsActivity"
+            android:exported="false"
+            android:theme="@style/Theme.AplicativoComedoriaDaTia"/>
+
+
+
 
 </application>
     </manifest>
