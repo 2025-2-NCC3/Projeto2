@@ -1,5 +1,6 @@
 package com.example.aplicativocomedoriadatia;
 
+import android.content.Intent;
 import android.os.Bundle;
 import android.os.Handler;
 import android.view.View;
@@ -27,7 +28,6 @@ public class PaymentActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_payment);
 
-        // Obtém o valor total do Intent
         totalAmount = getIntent().getDoubleExtra("total_amount", 0.0);
 
         initViews();
@@ -84,42 +84,43 @@ public class PaymentActivity extends AppCompatActivity {
     }
 
     private void processPayment() {
-        // Desabilita o botão durante o processamento
-        btnProcessPayment.setEnabled(false);
-
-        final String processingText;
-        final String successText;
-
-        switch (selectedMethod) {
-            case "pix":
-                processingText = "Processando PIX...";
-                successText = "Pagamento PIX aprovado! ✅";
-                break;
-            case "credit_card":
-                processingText = "Processando cartão de crédito...";
-                successText = "Cartão de crédito aprovado! ✅";
-                break;
-            case "debit_card":
-                processingText = "Processando cartão de débito...";
-                successText = "Cartão de débito aprovado! ✅";
-                break;
-            default:
-                processingText = "Processando...";
-                successText = "Pagamento aprovado! ✅";
+        if (selectedMethod.equals("pix")) {
+            openQrCodeScreen();
+        } else {
+            processCardPayment();
         }
+    }
 
-        btnProcessPayment.setText(processingText);
+    private void openQrCodeScreen() {
+        Intent intent = new Intent(this, QrCodeActivity.class);
+        intent.putExtra("amount", totalAmount);
+        startActivity(intent);
+    }
 
-        // Simula processamento do pagamento
+    private void processCardPayment() {
+        btnProcessPayment.setEnabled(false);
+        btnProcessPayment.setText("Processando cartão...");
+
         new Handler().postDelayed(() -> {
-            // Mostra resultado - CORREÇÃO: usar PaymentActivity.this
+            String successText = getSuccessMessage();
             Toast.makeText(PaymentActivity.this, successText, Toast.LENGTH_LONG).show();
 
-            // Reabilita o botão
             btnProcessPayment.setEnabled(true);
             updateButtonText();
+        }, 3000);
+    }
 
-        }, 3000); // 3 segundos de processamento
+    private String getSuccessMessage() {
+        switch (selectedMethod) {
+            case "pix":
+                return "Pagamento PIX aprovado! ✅";
+            case "credit_card":
+                return "Cartão de crédito aprovado! ✅";
+            case "debit_card":
+                return "Cartão de débito aprovado! ✅";
+            default:
+                return "Pagamento aprovado! ✅";
+        }
     }
 
     private void updateButtonText() {

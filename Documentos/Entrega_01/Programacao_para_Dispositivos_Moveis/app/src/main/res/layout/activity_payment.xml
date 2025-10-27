@@ -11,7 +11,6 @@
         android:layout_height="wrap_content"
         android:orientation="vertical">
 
-        <!-- Cabeçalho com Valor -->
         <com.google.android.material.card.MaterialCardView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
@@ -48,7 +47,6 @@
             </LinearLayout>
         </com.google.android.material.card.MaterialCardView>
 
-        <!-- Resumo do Pedido -->
         <com.google.android.material.card.MaterialCardView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
@@ -83,7 +81,6 @@
             </LinearLayout>
         </com.google.android.material.card.MaterialCardView>
 
-        <!-- Métodos de Pagamento -->
         <com.google.android.material.card.MaterialCardView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
@@ -112,7 +109,6 @@
                     android:layout_height="wrap_content"
                     android:orientation="vertical">
 
-                    <!-- PIX -->
                     <LinearLayout
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
@@ -146,7 +142,6 @@
 
                     </LinearLayout>
 
-                    <!-- Cartão de Crédito -->
                     <LinearLayout
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
@@ -172,7 +167,6 @@
 
                     </LinearLayout>
 
-                    <!-- Cartão de Débito -->
                     <LinearLayout
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
@@ -203,7 +197,6 @@
             </LinearLayout>
         </com.google.android.material.card.MaterialCardView>
 
-        <!-- Informações do PIX -->
         <com.google.android.material.card.MaterialCardView
             android:id="@+id/cardPixInfo"
             android:layout_width="match_parent"
@@ -239,7 +232,6 @@
             </LinearLayout>
         </com.google.android.material.card.MaterialCardView>
 
-        <!-- Informações do Cartão -->
         <com.google.android.material.card.MaterialCardView
             android:id="@+id/cardCardInfo"
             android:layout_width="match_parent"
@@ -275,7 +267,6 @@
             </LinearLayout>
         </com.google.android.material.card.MaterialCardView>
 
-        <!-- Botão de Pagamento -->
         <Button
             android:id="@+id/btnProcessPayment"
             android:layout_width="match_parent"
