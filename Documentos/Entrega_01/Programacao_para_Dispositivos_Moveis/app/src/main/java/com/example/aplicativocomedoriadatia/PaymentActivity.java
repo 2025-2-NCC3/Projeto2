@@ -43,7 +43,8 @@ public class PaymentActivity extends AppCompatActivity {
         cardPixInfo = findViewById(R.id.cardPixInfo);
         cardCardInfo = findViewById(R.id.cardCardInfo);
 
-        tvAmount.setText(String.format("R$ %.2f", totalAmount));
+        String formattedAmount = String.format("R$ %.2f", totalAmount);
+        tvAmount.setText(formattedAmount);
         showPaymentMethodInfo("pix");
     }
 
