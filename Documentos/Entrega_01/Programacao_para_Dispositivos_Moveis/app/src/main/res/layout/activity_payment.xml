@@ -115,8 +115,7 @@
                         android:orientation="horizontal"
                         android:padding="12dp"
                         android:background="?attr/selectableItemBackground"
-                        android:clickable="true"
-                        android:focusable="true">
+                        android:onClick="onPaymentMethodClicked">
 
                         <RadioButton
                             android:id="@+id/rbPix"
@@ -148,8 +147,7 @@
                         android:orientation="horizontal"
                         android:padding="12dp"
                         android:background="?attr/selectableItemBackground"
-                        android:clickable="true"
-                        android:focusable="true">
+                        android:onClick="onPaymentMethodClicked">
 
                         <RadioButton
                             android:id="@+id/rbCreditCard"
@@ -173,8 +171,7 @@
                         android:orientation="horizontal"
                         android:padding="12dp"
                         android:background="?attr/selectableItemBackground"
-                        android:clickable="true"
-                        android:focusable="true">
+                        android:onClick="onPaymentMethodClicked">
 
                         <RadioButton
                             android:id="@+id/rbDebitCard"
@@ -195,6 +192,7 @@
                 </RadioGroup>
 
             </LinearLayout>
+
         </com.google.android.material.card.MaterialCardView>
 
         <com.google.android.material.card.MaterialCardView

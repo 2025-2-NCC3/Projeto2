@@ -11,7 +11,11 @@ import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
 
+import com.example.aplicativocomedoriadatia.cart.CartItem;
+import com.example.aplicativocomedoriadatia.cart.CartManager;
 import com.google.android.material.card.MaterialCardView;
+
+import java.util.List;
 
 public class PaymentActivity extends AppCompatActivity {
 
@@ -43,7 +47,7 @@ public class PaymentActivity extends AppCompatActivity {
         cardPixInfo = findViewById(R.id.cardPixInfo);
         cardCardInfo = findViewById(R.id.cardCardInfo);
 
-        String formattedAmount = String.format("R$ %.2f", totalAmount);
+        String formattedAmount = formatToBrazilianCurrency(totalAmount);
         tvAmount.setText(formattedAmount);
         showPaymentMethodInfo("pix");
     }
@@ -139,10 +143,21 @@ public class PaymentActivity extends AppCompatActivity {
     }
 
     private void updateOrderSummary() {
-        String methodName = getMethodDisplayName(selectedMethod);
-        String summary = String.format("Total: R$ %.2f\n\nMétodo: %s\n\nClique no botão para simular pagamento",
-                totalAmount, methodName);
-        tvOrderSummary.setText(summary);
+        List<CartItem> items = CartManager.with(getApplicationContext()).getItems();
+
+        StringBuilder summary = new StringBuilder();
+        summary.append("Itens do Pedido:\n\n");
+
+        for (CartItem item : items) {
+            String productName = item.product != null ? item.product.name : "Produto";
+            summary.append(String.format("%dx %s\n", item.qty, productName));
+        }
+
+        summary.append(String.format("\nTotal: %s\n", formatToBrazilianCurrency(totalAmount)));
+        summary.append(String.format("Método: %s\n\n", getMethodDisplayName(selectedMethod)));
+        summary.append("Clique no botão para simular pagamento");
+
+        tvOrderSummary.setText(summary.toString());
     }
 
     private String getMethodDisplayName(String method) {
@@ -156,5 +171,9 @@ public class PaymentActivity extends AppCompatActivity {
             default:
                 return method;
         }
+    }
+
+    private String formatToBrazilianCurrency(double value) {
+        return String.format("R$ %.2f", value).replace(".", ",");
     }
 }

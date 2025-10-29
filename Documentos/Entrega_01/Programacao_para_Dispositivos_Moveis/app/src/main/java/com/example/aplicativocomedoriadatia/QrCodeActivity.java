@@ -17,11 +17,11 @@ import com.google.zxing.qrcode.QRCodeWriter;
 
 public class QrCodeActivity extends AppCompatActivity {
 
-
     private ImageView ivQrCode;
     private TextView tvAmount, tvTimer;
     private Handler timerHandler = new Handler();
     private int timerSeconds = 300;
+    private double amount;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -32,12 +32,18 @@ public class QrCodeActivity extends AppCompatActivity {
         tvAmount = findViewById(R.id.tvAmount);
         tvTimer = findViewById(R.id.tvTimer);
 
-        double amount = getIntent().getDoubleExtra("amount", 0.0);
-        tvAmount.setText(String.format("R$ %.2f", amount));
+        amount = getIntent().getDoubleExtra("amount", 0.0);
+
+        String formattedAmount = formatToBrazilianCurrency(amount);
+        tvAmount.setText(formattedAmount);
 
         generateQRCode(amount);
         startTimer();
         simulateAutomaticPayment();
+    }
+
+    private String formatToBrazilianCurrency(double value) {
+        return String.format("R$ %.2f", value).replace(".", ",");
     }
 
     private void generateQRCode(double amount) {
@@ -66,7 +72,6 @@ public class QrCodeActivity extends AppCompatActivity {
     private String createFakePixPayload(double amount) {
         String merchantName = "LOJA DEMONSTRACAO";
         String merchantCity = "SAO PAULO";
-        String transactionId = "ID" + System.currentTimeMillis();
 
         return "000201" +
                 "26580014br.gov.bcb.pix" +
@@ -78,14 +83,7 @@ public class QrCodeActivity extends AppCompatActivity {
                 "590" + String.format("%02d", merchantName.length()) + merchantName +
                 "600" + String.format("%02d", merchantCity.length()) + merchantCity +
                 "62070503***" +
-                "6304" +
-                generateCRC16("00020126580014br.gov.bcb.pix0136123e4567-e89b-12d3-a456-4266141740005204000053039865406" +
-                        String.format("%.2f", amount) + "5802BR590" + String.format("%02d", merchantName.length()) +
-                        merchantName + "600" + String.format("%02d", merchantCity.length()) + merchantCity + "62070503***");
-    }
-
-    private String generateCRC16(String data) {
-        return "ABCD";
+                "6304ABCD";
     }
 
     private void startTimer() {
@@ -114,7 +112,8 @@ public class QrCodeActivity extends AppCompatActivity {
 
     private void simulateAutomaticPayment() {
         new Handler().postDelayed(() -> {
-            Toast.makeText(this, "Pagamento simulado com sucesso! ✅", Toast.LENGTH_LONG).show();
+            String successMessage = String.format("Pagamento de %s simulado com sucesso! ✅", formatToBrazilianCurrency(amount));
+            Toast.makeText(this, successMessage, Toast.LENGTH_LONG).show();
             setResult(RESULT_OK);
             new Handler().postDelayed(() -> finish(), 2000);
         }, 10000);
