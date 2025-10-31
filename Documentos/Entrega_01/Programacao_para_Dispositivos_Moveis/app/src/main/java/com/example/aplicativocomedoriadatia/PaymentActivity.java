@@ -5,16 +5,20 @@ import android.os.Bundle;
 import android.os.Handler;
 import android.view.View;
 import android.widget.Button;
+import android.widget.LinearLayout;
+import android.widget.RadioButton;
 import android.widget.RadioGroup;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 
 import com.example.aplicativocomedoriadatia.cart.CartItem;
 import com.example.aplicativocomedoriadatia.cart.CartManager;
 import com.google.android.material.card.MaterialCardView;
 
+import java.util.ArrayList;
 import java.util.List;
 
 public class PaymentActivity extends AppCompatActivity {
@@ -23,6 +27,8 @@ public class PaymentActivity extends AppCompatActivity {
     private Button btnProcessPayment;
     private TextView tvAmount, tvOrderSummary;
     private MaterialCardView cardPixInfo, cardCardInfo;
+
+    private RadioButton rbPix, rbCreditCard, rbDebitCard;
 
     private double totalAmount;
     private String selectedMethod = "pix";
@@ -67,6 +73,9 @@ public class PaymentActivity extends AppCompatActivity {
                 showPaymentMethodInfo("debit_card");
             }
         });
+
+        // Adiciona listeners para os LinearLayouts clicáveis
+        setupRadioButtonClicks();
     }
 
     private void showPaymentMethodInfo(String method) {
@@ -99,7 +108,7 @@ public class PaymentActivity extends AppCompatActivity {
     private void openQrCodeScreen() {
         Intent intent = new Intent(this, QrCodeActivity.class);
         intent.putExtra("amount", totalAmount);
-        startActivity(intent);
+        startActivityForResult(intent, 1001);
     }
 
     private void processCardPayment() {
@@ -109,10 +118,30 @@ public class PaymentActivity extends AppCompatActivity {
         new Handler().postDelayed(() -> {
             String successText = getSuccessMessage();
             Toast.makeText(PaymentActivity.this, successText, Toast.LENGTH_LONG).show();
-
+            goToOrdersScreen();
             btnProcessPayment.setEnabled(true);
             updateButtonText();
         }, 3000);
+    }
+
+    private void goToOrdersScreen() {
+        List<CartItem> items = CartManager.with(getApplicationContext()).getItems();
+
+        if (items == null || items.isEmpty()) {
+            Toast.makeText(this, "Erro: Carrinho vazio", Toast.LENGTH_LONG).show();
+            return;
+        }
+
+        ArrayList<CartItem> cartItems = new ArrayList<>(items);
+        double total = CartManager.with(getApplicationContext()).getTotal();
+
+        Intent intent = new Intent(this, OrdersActivity.class);
+        intent.putExtra("produtos", cartItems);
+        intent.putExtra("total", total);
+
+        CartManager.with(getApplicationContext()).clear();
+        startActivity(intent);
+        finish();
     }
 
     private String getSuccessMessage() {
@@ -175,5 +204,37 @@ public class PaymentActivity extends AppCompatActivity {
 
     private String formatToBrazilianCurrency(double value) {
         return String.format("R$ %.2f", value).replace(".", ",");
+    }
+
+
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+
+        if (requestCode == 1001 && resultCode == RESULT_OK) {
+            Toast.makeText(this, "Pagamento PIX aprovado! ✅", Toast.LENGTH_LONG).show();
+            goToOrdersScreen();
+        }
+    }
+
+
+    private void setupRadioButtonClicks() {
+        // Encontra os LinearLayouts pais dos RadioButtons
+        LinearLayout pixLayout = (LinearLayout) findViewById(R.id.rbPix).getParent();
+        LinearLayout creditLayout = (LinearLayout) findViewById(R.id.rbCreditCard).getParent();
+        LinearLayout debitLayout = (LinearLayout) findViewById(R.id.rbDebitCard).getParent();
+
+        // Configura os cliques nos layouts para selecionar os RadioButtons
+        pixLayout.setOnClickListener(v -> {
+            rgPaymentMethod.check(R.id.rbPix);
+        });
+
+        creditLayout.setOnClickListener(v -> {
+            rgPaymentMethod.check(R.id.rbCreditCard);
+        });
+
+        debitLayout.setOnClickListener(v -> {
+            rgPaymentMethod.check(R.id.rbDebitCard);
+        });
     }
 }

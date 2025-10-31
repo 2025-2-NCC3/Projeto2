@@ -1,5 +1,6 @@
 package com.example.aplicativocomedoriadatia;
 
+import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.Color;
 import android.os.Bundle;
@@ -114,8 +115,10 @@ public class QrCodeActivity extends AppCompatActivity {
         new Handler().postDelayed(() -> {
             String successMessage = String.format("Pagamento de %s simulado com sucesso! ✅", formatToBrazilianCurrency(amount));
             Toast.makeText(this, successMessage, Toast.LENGTH_LONG).show();
-            setResult(RESULT_OK);
-            new Handler().postDelayed(() -> finish(), 2000);
+
+            Intent returnIntent = new Intent();
+            setResult(RESULT_OK, returnIntent);
+            finish();
         }, 10000);
     }
 

@@ -15,6 +15,7 @@ import com.example.aplicativocomedoriadatia.cart.CartItem;
 import com.example.aplicativocomedoriadatia.cart.CartManager;
 import com.example.aplicativocomedoriadatia.ui.CartAdapter;
 
+import java.util.ArrayList;
 import java.util.List;
 
 public class CartActivity extends AppCompatActivity implements CartAdapter.CartActions {
@@ -42,13 +43,19 @@ public class CartActivity extends AppCompatActivity implements CartAdapter.CartA
             if (adapter.getItemCount() == 0) {
                 Toast.makeText(this, "Carrinho vazio.", Toast.LENGTH_SHORT).show();
             } else {
+                // Pega os itens do carrinho
+                List<CartItem> cartItems = CartManager.with(getApplicationContext()).getItems();
                 double totalValue = CartManager.with(getApplicationContext()).getTotal();
 
-                Intent intent = new Intent(CartActivity.this, PaymentActivity.class);
-                intent.putExtra("total_amount", totalValue);
-                startActivity(intent);
+                // ✅ Cria intent para a tela de pagamento (envia apenas o necessário)
+                Intent paymentIntent = new Intent(CartActivity.this, PaymentActivity.class);
+                paymentIntent.putExtra("total_amount", totalValue);
+                // Não precisa enviar os itens aqui, o PaymentActivity vai pegar do CartManager
+
+                startActivity(paymentIntent);
             }
         });
+
 
         btnContinue.setOnClickListener(v -> {
             Intent it = new Intent(CartActivity.this, HomeActivity.class);

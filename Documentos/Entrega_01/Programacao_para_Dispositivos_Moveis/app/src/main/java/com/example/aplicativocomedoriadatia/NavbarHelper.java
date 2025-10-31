@@ -4,7 +4,6 @@ import android.app.Activity;
 import android.content.Intent;
 import android.view.View;
 import android.widget.LinearLayout;
-import android.widget.Toast;
 
 public class NavbarHelper {
 
@@ -21,8 +20,8 @@ public class NavbarHelper {
             int id = v.getId();
             if (id == R.id.nav_inicio && !(activity instanceof HomeActivity)) {
                 activity.startActivity(new Intent(activity, HomeActivity.class));
-            } else if (id == R.id.nav_pedidos && !(activity instanceof BalcaoActivity)) {
-                activity.startActivity(new Intent(activity, BalcaoActivity.class));
+            } else if (id == R.id.nav_pedidos && !(activity instanceof OrdersActivity)) {
+                activity.startActivity(new Intent(activity, OrdersActivity.class));
             } else if (id == R.id.nav_ofertas && !(activity instanceof OffersActivity)) {
                 activity.startActivity(new Intent(activity, OffersActivity.class));
             } else if (id == R.id.nav_perfil && !(activity instanceof ProfileActivity)) {
@@ -45,7 +44,7 @@ public class NavbarHelper {
             selectedId = R.id.nav_ofertas;
         }
 
-        if (activity instanceof BalcaoActivity) {
+        if (activity instanceof OrdersActivity) {
             selectedId = R.id.nav_pedidos;
         }
 

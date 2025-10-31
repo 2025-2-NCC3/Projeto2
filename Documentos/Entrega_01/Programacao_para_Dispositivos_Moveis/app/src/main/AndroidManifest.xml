@@ -90,11 +90,7 @@
             android:exported="false"
             android:theme="@style/Theme.AplicativoComedoriaDaTia"/>
 
-        <activity android:name=".BalcaoActivity"
-            android:exported="true"
-            android:theme="@style/Theme.AplicativoComedoriaDaTia"/>
-
-        <activity android:name=".AlunoActivity"
+        <activity android:name=".OrdersActivity"
             android:exported="true"
             android:theme="@style/Theme.AplicativoComedoriaDaTia"/>
 

@@ -109,50 +109,70 @@
                     android:layout_height="wrap_content"
                     android:orientation="vertical">
 
+                    <!-- Opção PIX -->
                     <LinearLayout
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:orientation="horizontal"
                         android:padding="12dp"
                         android:background="?attr/selectableItemBackground"
-                        android:onClick="onPaymentMethodClicked">
+                        android:clickable="true"
+                        android:focusable="true">
 
                         <RadioButton
                             android:id="@+id/rbPix"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:checked="true"/>
+                            android:checked="true"
+                            android:clickable="false"
+                            android:focusable="false"
+                            android:focusableInTouchMode="false"/>
 
-                        <TextView
+                        <LinearLayout
                             android:layout_width="0dp"
                             android:layout_height="wrap_content"
                             android:layout_weight="1"
-                            android:text="PIX"
-                            android:textSize="16sp"
-                            android:textColor="#000000"
-                            android:layout_marginStart="12dp"/>
+                            android:orientation="vertical"
+                            android:layout_marginStart="12dp"
+                            android:clickable="false"
+                            android:focusable="false">
 
-                        <TextView
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:text="✓ Instantâneo"
-                            android:textSize="12sp"
-                            android:textColor="#4CAF50"/>
+                            <TextView
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:text="PIX"
+                                android:textSize="16sp"
+                                android:textColor="#000000"/>
+
+                            <TextView
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:text="✓ Instantâneo"
+                                android:textSize="12sp"
+                                android:textColor="#4CAF50"
+                                android:layout_marginTop="2dp"/>
+
+                        </LinearLayout>
 
                     </LinearLayout>
 
+                    <!-- Opção Cartão de Crédito -->
                     <LinearLayout
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:orientation="horizontal"
                         android:padding="12dp"
                         android:background="?attr/selectableItemBackground"
-                        android:onClick="onPaymentMethodClicked">
+                        android:clickable="true"
+                        android:focusable="true">
 
                         <RadioButton
                             android:id="@+id/rbCreditCard"
                             android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"/>
+                            android:layout_height="wrap_content"
+                            android:clickable="false"
+                            android:focusable="false"
+                            android:focusableInTouchMode="false"/>
 
                         <TextView
                             android:layout_width="0dp"
@@ -161,22 +181,29 @@
                             android:text="Cartão de Crédito"
                             android:textSize="16sp"
                             android:textColor="#000000"
-                            android:layout_marginStart="12dp"/>
+                            android:layout_marginStart="12dp"
+                            android:clickable="false"
+                            android:focusable="false"/>
 
                     </LinearLayout>
 
+                    <!-- Opção Cartão de Débito -->
                     <LinearLayout
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:orientation="horizontal"
                         android:padding="12dp"
                         android:background="?attr/selectableItemBackground"
-                        android:onClick="onPaymentMethodClicked">
+                        android:clickable="true"
+                        android:focusable="true">
 
                         <RadioButton
                             android:id="@+id/rbDebitCard"
                             android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"/>
+                            android:layout_height="wrap_content"
+                            android:clickable="false"
+                            android:focusable="false"
+                            android:focusableInTouchMode="false"/>
 
                         <TextView
                             android:layout_width="0dp"
@@ -185,7 +212,9 @@
                             android:text="Cartão de Débito"
                             android:textSize="16sp"
                             android:textColor="#000000"
-                            android:layout_marginStart="12dp"/>
+                            android:layout_marginStart="12dp"
+                            android:clickable="false"
+                            android:focusable="false"/>
 
                     </LinearLayout>
 
