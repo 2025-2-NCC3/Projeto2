@@ -1,6 +1,5 @@
 import { useMemo, useState, useEffect } from "react";
 import { useNavigate, Link } from "react-router-dom";
-// eslint-disable-next-line no-unused-vars
 import { motion } from "framer-motion";
 import {
   Image as ImageIcon,
@@ -11,6 +10,8 @@ import {
   ArrowLeft,
   Plus,
   Trash2,
+  BadgePercent,
+  Calendar,
 } from "lucide-react";
 import supabase from "../../lib/supabaseClient";
 import { useNotifier } from "../../components/Notifier/useNotifier";
@@ -45,7 +46,12 @@ export default function ProductNew() {
   const [slug, setSlug] = useState("");
   const [description, setDescription] = useState("");
   const [price, setPrice] = useState("");
-  const [costEstimated, setCostEstimated] = useState("");
+  
+  // Campos para promoção
+  const [hasPromotion, setHasPromotion] = useState(false);
+  const [promotionPrice, setPromotionPrice] = useState("");
+  const [startsAt, setStartsAt] = useState("");
+  const [endsAt, setEndsAt] = useState("");
 
   // Estados relacionados à imagem
   const [imageFile, setImageFile] = useState(null);
@@ -121,6 +127,54 @@ export default function ProductNew() {
   const updateRow = (setFn, idx, field, v) =>
     setFn((rows) => rows.map((r, i) => (i === idx ? { ...r, [field]: v } : r)));
 
+  // Validação das datas de promoção
+  const validatePromotionDates = () => {
+    if (!hasPromotion) return true;
+
+    if (!promotionPrice || !startsAt || !endsAt) {
+      notify({
+        type: "error",
+        title: "Dados de promoção incompletos",
+        message: "Preencha preço promocional, data inicial e data final.",
+      });
+      return false;
+    }
+
+    const promotionPriceNum = Number(String(promotionPrice).replace(",", "."));
+    if (!promotionPriceNum || promotionPriceNum <= 0) {
+      notify({
+        type: "error",
+        title: "Preço promocional inválido",
+        message: "Informe um preço promocional válido.",
+      });
+      return false;
+    }
+
+    const startDate = new Date(startsAt);
+    const endDate = new Date(endsAt);
+    const now = new Date();
+
+    if (startDate >= endDate) {
+      notify({
+        type: "error",
+        title: "Datas inválidas",
+        message: "A data final deve ser posterior à data inicial.",
+      });
+      return false;
+    }
+
+    if (endDate <= now) {
+      notify({
+        type: "error",
+        title: "Data final inválida",
+        message: "A data final deve ser futura.",
+      });
+      return false;
+    }
+
+    return true;
+  };
+
   async function handleSubmit(e) {
     e.preventDefault();
 
@@ -139,23 +193,19 @@ export default function ProductNew() {
         message: "Não foi possível gerar o slug.",
       });
 
-    // ✅ PREÇO OPCIONAL: Se informado, valida; se vazio, fica null
+    // ✅ VALIDAÇÃO DO PREÇO NORMAL (obrigatório)
     const priceNumber = price ? Number(String(price).replace(",", ".")) : null;
-    if (price && (!priceNumber || priceNumber <= 0))
+    if (!priceNumber || priceNumber <= 0)
       return notify({
         type: "error",
-        title: "Preço inválido",
-        message: "Informe um preço válido (ex.: 7.50) ou deixe em branco.",
+        title: "Preço obrigatório",
+        message: "Informe um preço válido para o produto.",
       });
 
-    // ✅ CUSTO OPCIONAL: Se informado, valida; se vazio, fica null
-    const costNumber = costEstimated ? Number(String(costEstimated).replace(",", ".")) : null;
-    if (costEstimated && Number.isNaN(costNumber))
-      return notify({
-        type: "error",
-        title: "Custo inválido",
-        message: "Custo estimado deve ser numérico ou deixe em branco.",
-      });
+    // Validar promoção se estiver ativa
+    if (hasPromotion && !validatePromotionDates()) {
+      return;
+    }
 
     const featuresObj = pairsToObject(features);
     const nutritionObj = pairsToObject(nutrition);
@@ -207,45 +257,56 @@ export default function ProductNew() {
         finalImageUrl = item?.image_url || item?.thumb_url || null;
       }
 
-      // ✅ SALVAR NA TABELA PRODUCTS COM PREÇO NO cost_estimated
+      // ✅ SALVAR NA TABELA PRODUTOS_TESTE - COM TODOS OS CAMPOS OBRIGATÓRIOS
+      const productData = {
+        id: crypto.randomUUID(), // ✅ GERAR ID EXPLICITAMENTE
+        name: name.trim(),
+        slug: finalSlug,
+        price: priceNumber, // ✅ PREÇO NORMAL (OBRIGATÓRIO)
+        description: description || null,
+        image_url: finalImageUrl || null,
+        features: featuresObj || {}, // ✅ DEFAULT PARA JSONB
+        nutrition: nutritionObj || {}, // ✅ DEFAULT PARA JSONB
+        is_active: true,
+        has_promotion: hasPromotion,
+        promotion_price: hasPromotion ? Number(String(promotionPrice).replace(",", ".")) : null,
+        starts_at: hasPromotion ? startsAt : null,
+        ends_at: hasPromotion ? endsAt : null,
+        stock_qty: 0, // ✅ VALOR DEFAULT
+        created_at: new Date().toISOString(), // ✅ TIMESTAMP EXPLÍCITO
+        updated_at: new Date().toISOString(), // ✅ TIMESTAMP EXPLÍCITO
+      };
+
+      console.log('Enviando dados:', productData);
+
       const { data: prod, error: pErr } = await supabase
-        .from("products")
-        .insert({
-          name: name.trim(),
-          slug: finalSlug,
-          description: description || null,
-          image_url: finalImageUrl || null,
-          features: featuresObj,
-          nutrition: nutritionObj,
-          is_active: true,
-          // ✅ PREÇO VAI PARA cost_estimated
-          cost_estimated: priceNumber, 
-        })
-        .select("id, slug")
+        .from("produtos_teste")
+        .insert(productData)
+        .select("id, slug, name")
         .single();
         
       if (pErr) {
+        console.error('Erro detalhado:', pErr);
         notify({
           type: "error",
           title: "Erro ao salvar produto",
-          message: pErr.message,
+          message: pErr.details || pErr.message || "Erro desconhecido",
         });
         setSaving(false);
         return;
       }
 
-      // ✅ NÃO SALVA MAIS EM PRODUCT_PRICES - Produto normal do catálogo
-      
       notify({
         type: "success",
         title: "Produto cadastrado",
-        message: priceNumber 
-          ? "Produto criado com preço definido!" 
-          : "Produto criado! Defina o preço depois.",
+        message: hasPromotion 
+          ? "Produto criado com promoção ativa!" 
+          : "Produto criado com sucesso!",
       });
       
       setTimeout(() => navigate("/app/produtos", { replace: true }), 700);
     } catch (err) {
+      console.error('Erro inesperado:', err);
       notify({
         type: "error",
         title: "Erro inesperado",
@@ -394,28 +455,66 @@ export default function ProductNew() {
               />
             </label>
 
-            {/* ✅ PREÇO E CUSTO OPCIONAIS */}
-            <div className="pnew-row">
-              <label className="pnew-label">
-                <span>Preço (R$) - Opcional</span>
+            {/* PREÇO NORMAL (OBRIGATÓRIO) */}
+            <label className="pnew-label">
+              <span>Preço (R$) *</span>
+              <input
+                inputMode="decimal"
+                placeholder="Ex.: 12.50"
+                value={price}
+                onChange={(e) => setPrice(e.target.value)}
+                required
+              />
+              <small>Preço normal de venda ao público</small>
+            </label>
+
+            {/* SEÇÃO DE PROMOÇÃO */}
+            <div className="pnew-promotion-section">
+              <label className="pnew-checkbox-label">
                 <input
-                  inputMode="decimal"
-                  placeholder="deixe em branco para definir depois"
-                  value={price}
-                  onChange={(e) => setPrice(e.target.value)}
+                  type="checkbox"
+                  checked={hasPromotion}
+                  onChange={(e) => setHasPromotion(e.target.checked)}
                 />
-                <small>Preço de venda ao público (vai para cost_estimated)</small>
+                <BadgePercent size={16} />
+                <span>Este produto tem promoção</span>
               </label>
-              <label className="pnew-label">
-                <span>Custo estimado (R$) - Opcional</span>
-                <input
-                  inputMode="decimal"
-                  placeholder="deixe em branco se não souber"
-                  value={costEstimated}
-                  onChange={(e) => setCostEstimated(e.target.value)}
-                />
-                <small>Para controle interno (custo real de produção)</small>
-              </label>
+
+              {hasPromotion && (
+                <div className="pnew-promotion-fields">
+                  <div className="pnew-row">
+                    <label className="pnew-label">
+                      <span>Preço promocional (R$)</span>
+                      <input
+                        inputMode="decimal"
+                        placeholder="Ex.: 9.90"
+                        value={promotionPrice}
+                        onChange={(e) => setPromotionPrice(e.target.value)}
+                      />
+                      <small>Preço com desconto</small>
+                    </label>
+                  </div>
+
+                  <div className="pnew-row">
+                    <label className="pnew-label">
+                      <span><Calendar size={14} /> Início da promoção</span>
+                      <input
+                        type="datetime-local"
+                        value={startsAt}
+                        onChange={(e) => setStartsAt(e.target.value)}
+                      />
+                    </label>
+                    <label className="pnew-label">
+                      <span><Calendar size={14} /> Fim da promoção</span>
+                      <input
+                        type="datetime-local"
+                        value={endsAt}
+                        onChange={(e) => setEndsAt(e.target.value)}
+                      />
+                    </label>
+                  </div>
+                </div>
+              )}
             </div>
 
             {/* Características */}

@@ -355,7 +355,7 @@ export default function OffersPage() {
           Produtos
         </a>
         <a
-          href="/carrinho"
+          href="/app/alunos/carrinho"
           className="flex-1 bg-emerald-600 hover:bg-emerald-500 text-white py-4 rounded-xl font-semibold flex items-center justify-center gap-2 transition-colors"
         >
           <ShoppingCart size={20} />

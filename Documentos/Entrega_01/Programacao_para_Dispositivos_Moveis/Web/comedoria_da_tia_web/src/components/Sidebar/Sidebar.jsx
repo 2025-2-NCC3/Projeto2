@@ -12,6 +12,7 @@ import {
   ChevronLeft,
   ChevronRight,
   Images,
+  ListOrdered,
 } from "lucide-react";
 import "./Sidebar.css";
 import supabase from "../../lib/supabaseClient";
@@ -103,6 +104,12 @@ export default function Sidebar() {
           to="produtos/promocao"
           icon={<Percent size={18} />}
           label="Promoções"
+          collapsed={collapsed}
+        />
+        <SbLink 
+          to="/app/pedidos"
+          icon={<ListOrdered size={18} />}
+          label="Pedidos"
           collapsed={collapsed}
         />
 

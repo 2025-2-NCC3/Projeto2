@@ -2,7 +2,7 @@
 import { useEffect, useMemo, useState, useCallback } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { motion } from 'framer-motion'
-import { BadgePercent, ArrowLeft, PackageSearch, Coins, Info } from 'lucide-react'
+import { BadgePercent, ArrowLeft, PackageSearch, Coins, Info, Calendar } from 'lucide-react'
 import supabase from '../../lib/supabaseClient'
 import { useNotifier } from '../../components/Notifier/useNotifier'
 import './Promotion.css'
@@ -19,8 +19,18 @@ function fmtMoney(n) {
 }
 
 function todayStr() {
-  // formato yyyy-mm-dd para o <input type="date" min="...">
   return new Date().toISOString().slice(0, 10)
+}
+
+function formatDateTimeLocal(date) {
+  if (!date) return ''
+  const d = new Date(date)
+  const year = d.getFullYear()
+  const month = String(d.getMonth() + 1).padStart(2, '0')
+  const day = String(d.getDate()).padStart(2, '0')
+  const hours = String(d.getHours()).padStart(2, '0')
+  const minutes = String(d.getMinutes()).padStart(2, '0')
+  return `${year}-${month}-${day}T${hours}:${minutes}`
 }
 
 /* =====================================
@@ -30,29 +40,19 @@ export default function Promotion() {
   const { notify, NotifierHost } = useNotifier()
   const navigate = useNavigate()
 
-  // loading inicial dos produtos
   const [loading, setLoading] = useState(true)
-
-  // lista de produtos retornados do banco
   const [products, setProducts] = useState([])
-
-  // texto de busca
   const [q, setQ] = useState('')
-
-  // id do produto selecionado no <select>
   const [selectedId, setSelectedId] = useState('')
-
-  // produto atualmente selecionado (obj completo)
   const [current, setCurrent] = useState(null)
-
-  // histórico de preços desse produto
   const [history, setHistory] = useState([])
-
-  // form de lançamento
-  const [price, setPrice] = useState('')
+  
+  // Novos campos para promoção
+  const [hasPromotion, setHasPromotion] = useState(false)
+  const [promotionPrice, setPromotionPrice] = useState('')
+  const [startsAt, setStartsAt] = useState('')
   const [endsAt, setEndsAt] = useState('')
-
-  // estado de submit da promoção
+  
   const [saving, setSaving] = useState(false)
 
   /* =====================================
@@ -69,27 +69,21 @@ export default function Promotion() {
   }, [q, products])
 
   /* =====================================
-     Carregar lista de produtos (APENAS 'products')
+     Carregar lista de produtos da tabela produtos_teste
      ===================================== */
   const loadProducts = useCallback(async () => {
     setLoading(true)
     try {
       const { data, error } = await supabase
-        .from('products')
-        .select('id,name,slug,image_url,cost_estimated,is_active')
+        .from('produtos_teste')
+        .select('*')
         .order('name', { ascending: true })
 
       if (error) {
         throw error
       }
 
-      // normaliza: front espera campo price
-      const mapped = (data ?? []).map((p) => ({
-        ...p,
-        price: p.cost_estimated,
-      }))
-
-      setProducts(mapped)
+      setProducts(data ?? [])
     } catch (err) {
       notify({
         type: 'error',
@@ -102,23 +96,46 @@ export default function Promotion() {
   }, [notify])
 
   /* =====================================
-     Carregar histórico de preço daquele produto
+     Carregar histórico de promoções do produto
      ===================================== */
   const loadHistory = useCallback(
     async (productId) => {
       setHistory([])
       if (!productId) return
       try {
+        // Buscar da própria tabela produtos_teste para ver promoções anteriores
         const { data, error } = await supabase
-          .from('product_prices')
-          .select('price, starts_at, ends_at')
-          .eq('product_id', productId)
-          .order('starts_at', { ascending: false })
-          .limit(12)
+          .from('produtos_teste')
+          .select('name, price, promotion_price, starts_at, ends_at, updated_at')
+          .eq('id', productId)
+          .single()
 
         if (error) throw error
 
-        setHistory(data ?? [])
+        // Criar histórico baseado nas promoções atuais e anteriores
+        const historyData = []
+        
+        // Preço normal atual
+        historyData.push({
+          price: data.price,
+          type: 'normal',
+          date: data.updated_at,
+          description: 'Preço normal'
+        })
+
+        // Se tem promoção ativa
+        if (data.has_promotion && data.promotion_price) {
+          historyData.push({
+            price: data.promotion_price,
+            type: 'promotion',
+            date: data.updated_at,
+            description: 'Promoção atual',
+            starts_at: data.starts_at,
+            ends_at: data.ends_at
+          })
+        }
+
+        setHistory(historyData)
       } catch (err) {
         notify({
           type: 'error',
@@ -131,46 +148,50 @@ export default function Promotion() {
   )
 
   /* =====================================
-     Sempre que o usuário escolher outro produto:
-     - define current
-     - reseta campos de form
-     - busca histórico daquele produto
+     Quando selecionar um produto
      ===================================== */
   useEffect(() => {
     const p = products.find((x) => String(x.id) === String(selectedId)) || null
 
     setCurrent(p)
-    setPrice(p ? String(p.price ?? '') : '')
-    setEndsAt('')
+    
+    if (p) {
+      // Preencher formulário com dados atuais do produto
+      setHasPromotion(p.has_promotion || false)
+      setPromotionPrice(p.promotion_price ? String(p.promotion_price) : '')
+      setStartsAt(p.starts_at ? formatDateTimeLocal(p.starts_at) : '')
+      setEndsAt(p.ends_at ? formatDateTimeLocal(p.ends_at) : '')
+    } else {
+      // Resetar formulário se não há produto selecionado
+      setHasPromotion(false)
+      setPromotionPrice('')
+      setStartsAt('')
+      setEndsAt('')
+    }
 
     loadHistory(p ? p.id : null)
   }, [selectedId, products, loadHistory])
 
   /* =====================================
      Carrega produtos quando houver sessão
-     e reage a mudanças de auth
      ===================================== */
   useEffect(() => {
     let mounted = true
 
-    // tenta sessão atual
     supabase.auth.getSession().then(({ data }) => {
       if (!mounted) return
       if (data.session) {
         loadProducts()
       } else {
-        // se não tem sessão, não tenta carregar
         setLoading(false)
       }
     })
 
-    // escuta login/logout em tempo real
     const { data: sub } = supabase.auth.onAuthStateChange((_event, session) => {
       if (!mounted) return
       if (session) {
         loadProducts()
       } else {
-        // logout -> limpa lista
         setProducts([])
       }
     })
@@ -182,7 +203,66 @@ export default function Promotion() {
   }, [loadProducts])
 
   /* =====================================
-     Salvar promoção
+     Validação das datas de promoção
+     ===================================== */
+  const validatePromotionDates = () => {
+    if (!hasPromotion) return true
+
+    if (!promotionPrice) {
+      notify({
+        type: 'error',
+        title: 'Preço promocional obrigatório',
+        message: 'Informe o preço promocional.',
+      })
+      return false
+    }
+
+    const promotionPriceNum = Number(String(promotionPrice).replace(',', '.'))
+    if (!promotionPriceNum || promotionPriceNum <= 0) {
+      notify({
+        type: 'error',
+        title: 'Preço promocional inválido',
+        message: 'Digite um valor numérico maior que zero.',
+      })
+      return false
+    }
+
+    if (!startsAt || !endsAt) {
+      notify({
+        type: 'error',
+        title: 'Datas obrigatórias',
+        message: 'Informe data de início e fim da promoção.',
+      })
+      return false
+    }
+
+    const startDate = new Date(startsAt)
+    const endDate = new Date(endsAt)
+    const now = new Date()
+
+    if (startDate >= endDate) {
+      notify({
+        type: 'error',
+        title: 'Datas inválidas',
+        message: 'A data final deve ser posterior à data inicial.',
+      })
+      return false
+    }
+
+    if (endDate <= now) {
+      notify({
+        type: 'error',
+        title: 'Data final inválida',
+        message: 'A data final deve ser futura.',
+      })
+      return false
+    }
+
+    return true
+  }
+
+  /* =====================================
+     Salvar/Atualizar promoção
      ===================================== */
   async function savePromotion(e) {
     e.preventDefault()
@@ -196,7 +276,6 @@ export default function Promotion() {
       return
     }
 
-    // garante que estamos logados antes de tentar dar INSERT (ajuda a evitar 403)
     const {
       data: { session },
     } = await supabase.auth.getSession()
@@ -210,60 +289,115 @@ export default function Promotion() {
       return
     }
 
-    // valida preço
-    const priceNumber = Number(String(price).replace(',', '.'))
-    if (!priceNumber || priceNumber <= 0) {
-      notify({
-        type: 'error',
-        title: 'Preço inválido',
-        message: 'Digite um valor numérico maior que zero.',
-      })
+    // Validar promoção se estiver ativa
+    if (hasPromotion && !validatePromotionDates()) {
       return
     }
 
     try {
       setSaving(true)
 
-      // payload que vai pro Supabase
-      const payload = {
-        product_id: current.id,          // uuid do produto
-        price: priceNumber,              // numeric(12,2)
-        name: current.name ?? null,      // snapshot do nome
+      // Preparar dados para atualização
+      const updateData = {
+        has_promotion: hasPromotion,
+        promotion_price: hasPromotion ? Number(String(promotionPrice).replace(',', '.')) : null,
+        starts_at: hasPromotion ? startsAt : null,
+        ends_at: hasPromotion ? endsAt : null,
+        updated_at: new Date().toISOString(),
       }
 
-      if (endsAt) {
-        // fim opcional da promo, no final do dia
-        payload.ends_at = new Date(`${endsAt}T23:59:59`).toISOString()
-      }
+      // UPDATE na tabela produtos_teste
+      const { error: updateErr } = await supabase
+        .from('produtos_teste')
+        .update(updateData)
+        .eq('id', current.id)
 
-      // INSERT na tabela de histórico/preços
-      const { error: insertErr } = await supabase
-        .from('product_prices')
-        .insert(payload)
+      if (updateErr) throw updateErr
 
-      if (insertErr) throw insertErr
-
-      // atualiza o preço daquele produto na lista local (UX imediato)
+      // Atualizar a lista local
       setProducts((prev) =>
         prev.map((p) =>
           String(p.id) === String(current.id)
-            ? { ...p, price: priceNumber }
+            ? { ...p, ...updateData }
             : p
         )
       )
 
       notify({
         type: 'success',
-        title: 'Promoção aplicada',
-        message: 'Preço registrado com sucesso.',
+        title: hasPromotion ? 'Promoção aplicada' : 'Promoção removida',
+        message: hasPromotion 
+          ? `Promoção de ${fmtMoney(updateData.promotion_price)} aplicada com sucesso!`
+          : 'Promoção removida do produto.',
       })
 
-      // recarrega histórico visível
+      // Recarregar histórico
       loadHistory(current.id)
     } catch (err) {
       notify({
         type: 'error',
         title: 'Erro ao salvar',
+        message: String(err?.message || err),
+      })
+    } finally {
+      setSaving(false)
+    }
+  }
+
+  /* =====================================
+     Remover promoção
+     ===================================== */
+  async function removePromotion() {
+    if (!current) return
+
+    try {
+      setSaving(true)
+
+      const { error } = await supabase
+        .from('produtos_teste')
+        .update({
+          has_promotion: false,
+          promotion_price: null,
+          starts_at: null,
+          ends_at: null,
+          updated_at: new Date().toISOString(),
+        })
+        .eq('id', current.id)
+
+      if (error) throw error
+
+      // Atualizar lista local
+      setProducts((prev) =>
+        prev.map((p) =>
+          String(p.id) === String(current.id)
+            ? { 
+                ...p, 
+                has_promotion: false,
+                promotion_price: null,
+                starts_at: null,
+                ends_at: null 
+              }
+            : p
+        )
+      )
+
+      // Resetar formulário
+      setHasPromotion(false)
+      setPromotionPrice('')
+      setStartsAt('')
+      setEndsAt('')
+
+      notify({
+        type: 'success',
+        title: 'Promoção removida',
+        message: 'Promoção removida com sucesso.',
+      })
+
+      loadHistory(current.id)
+    } catch (err) {
+      notify({
+        type: 'error',
+        title: 'Erro ao remover promoção',
         message: String(err?.message || err),
       })
     } finally {
@@ -329,6 +463,7 @@ export default function Promotion() {
                 {filtered.map((p) => (
                   <option key={p.id} value={p.id}>
                     {p.name} — {fmtMoney(p.price)}
+                    {p.has_promotion && ' 🏷️ PROMO'}
                   </option>
                 ))}
               </select>
@@ -347,14 +482,19 @@ export default function Promotion() {
                     <Coins size={14} /> {fmtMoney(current.price)}
                   </span>
 
+                  {current.has_promotion && (
+                    <span className="pill" style={{ background: '#dc2626', color: 'white' }}>
+                      <BadgePercent size={14} /> {fmtMoney(current.promotion_price)}
+                    </span>
+                  )}
+
                   {!current.is_active && (
                     <span className="pill">inativo</span>
                   )}
                 </div>
 
                 <small style={{ color: 'var(--muted)' }}>
-                  Preço exibido vem diretamente de{' '}
-                  <code>products.cost_estimated</code>.
+                  Sistema integrado com a tabela <code>produtos_teste</code>.
                 </small>
               </div>
             )}
@@ -362,33 +502,63 @@ export default function Promotion() {
 
           {/* Painel: formulário de promoção */}
           <form className="prom-panel" onSubmit={savePromotion}>
-            <h3>Lançar promoção</h3>
+            <h3>Gerenciar Promoção</h3>
 
-            <div className="prom-row">
-              <div className="prom-field">
-                <label>Novo preço (R$)</label>
+            {/* Checkbox para ativar/desativar promoção */}
+            <div className="prom-field">
+              <label className="checkbox-label">
                 <input
-                  className="prom-input"
-                  inputMode="decimal"
-                  placeholder="ex.: 6.50"
-                  value={price}
-                  onChange={(e) => setPrice(e.target.value)}
+                  type="checkbox"
+                  checked={hasPromotion}
+                  onChange={(e) => setHasPromotion(e.target.checked)}
                   disabled={!current || saving}
                 />
-              </div>
-
-              <div className="prom-field">
-                <label>Termina em (opcional)</label>
-                <input
-                  className="prom-input"
-                  type="date"
-                  min={todayStr()}
-                  value={endsAt}
-                  onChange={(e) => setEndsAt(e.target.value)}
-                  disabled={!current || saving}
-                />
-              </div>
+                <BadgePercent size={16} />
+                <span>Ativar promoção para este produto</span>
+              </label>
             </div>
+
+            {hasPromotion && (
+              <div className="prom-promotion-fields">
+                <div className="prom-row">
+                  <div className="prom-field">
+                    <label>Preço promocional (R$)</label>
+                    <input
+                      className="prom-input"
+                      inputMode="decimal"
+                      placeholder="ex.: 6.50"
+                      value={promotionPrice}
+                      onChange={(e) => setPromotionPrice(e.target.value)}
+                      disabled={!current || saving}
+                    />
+                  </div>
+                </div>
+
+                <div className="prom-row">
+                  <div className="prom-field">
+                    <label><Calendar size={14} /> Início da promoção</label>
+                    <input
+                      className="prom-input"
+                      type="datetime-local"
+                      value={startsAt}
+                      onChange={(e) => setStartsAt(e.target.value)}
+                      disabled={!current || saving}
+                    />
+                  </div>
+
+                  <div className="prom-field">
+                    <label><Calendar size={14} /> Fim da promoção</label>
+                    <input
+                      className="prom-input"
+                      type="datetime-local"
+                      value={endsAt}
+                      onChange={(e) => setEndsAt(e.target.value)}
+                      disabled={!current || saving}
+                    />
+                  </div>
+                </div>
+              </div>
+            )}
 
             <div className="prom-actionsbar">
               <button
@@ -399,27 +569,37 @@ export default function Promotion() {
                 <ArrowLeft size={16} /> Cancelar
               </button>
 
+              {current?.has_promotion && (
+                <button
+                  type="button"
+                  className="btn-danger"
+                  onClick={removePromotion}
+                  disabled={!current || saving}
+                >
+                  <BadgePercent size={16} /> Remover Promoção
+                </button>
+              )}
+
               <button
                 className="btn-primary"
                 type="submit"
                 disabled={!current || saving}
               >
                 <BadgePercent size={16} />{' '}
-                {saving ? 'Aplicando…' : 'Aplicar promoção'}
+                {saving ? 'Salvando…' : hasPromotion ? 'Aplicar Promoção' : 'Atualizar Produto'}
               </button>
             </div>
 
             <div className="prom-hint">
-              <Info size={14} /> Ao aplicar, o preço é gravado em{' '}
-              <code>product_prices</code>. O produto original não é alterado —
-              garantindo o histórico completo.
+              <Info size={14} /> As promoções são gerenciadas diretamente na tabela{' '}
+              <code>produtos_teste</code> com controle de datas de validade.
             </div>
           </form>
         </div>
 
         {/* Painel: histórico de preços */}
         <div className="prom-panel">
-          <h3>Histórico de preços</h3>
+          <h3>Histórico de Preços</h3>
 
           {!current ? (
             <div style={{ color: 'var(--muted)' }}>
@@ -427,7 +607,7 @@ export default function Promotion() {
             </div>
           ) : history.length === 0 ? (
             <div style={{ color: 'var(--muted)' }}>
-              Nenhum registro recente de preço para este produto.
+              Nenhum registro de preço para este produto.
             </div>
           ) : (
             <div className="table-wrap">
@@ -435,22 +615,32 @@ export default function Promotion() {
                 <thead>
                   <tr>
                     <th>Preço</th>
-                    <th>Criado em</th>
-                    <th>Termina em</th>
+                    <th>Tipo</th>
+                    <th>Descrição</th>
+                    <th>Início</th>
+                    <th>Término</th>
                   </tr>
                 </thead>
                 <tbody>
                   {history.map((h, i) => (
                     <tr key={i}>
-                      <td>{fmtMoney(h.price)}</td>
+                      <td>
+                        <strong>{fmtMoney(h.price)}</strong>
+                      </td>
+                      <td>
+                        <span className={`pill ${h.type === 'promotion' ? 'promo-pill' : ''}`}>
+                          {h.type === 'promotion' ? 'PROMO' : 'NORMAL'}
+                        </span>
+                      </td>
+                      <td>{h.description}</td>
                       <td>
                         {h.starts_at
-                          ? new Date(h.starts_at).toLocaleString()
+                          ? new Date(h.starts_at).toLocaleString('pt-BR')
                           : '—'}
                       </td>
                       <td>
                         {h.ends_at
-                          ? new Date(h.ends_at).toLocaleDateString()
+                          ? new Date(h.ends_at).toLocaleString('pt-BR')
                           : '—'}
                       </td>
                     </tr>
