@@ -15,6 +15,7 @@ import com.example.aplicativocomedoriadatia.model.ProductPrice;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Locale;
 
 public class OfferAdapter extends RecyclerView.Adapter<OfferAdapter.OfferViewHolder> {
 
@@ -44,7 +45,6 @@ public class OfferAdapter extends RecyclerView.Adapter<OfferAdapter.OfferViewHol
         ProductPrice offer = offers.get(position);
         holder.bind(offer);
 
-        // 🔹 Envia o ProductPrice completo no clique
         holder.itemView.setOnClickListener(v -> {
             if (clickListener != null) {
                 clickListener.onItemClick(offer);
@@ -65,7 +65,7 @@ public class OfferAdapter extends RecyclerView.Adapter<OfferAdapter.OfferViewHol
 
     static class OfferViewHolder extends RecyclerView.ViewHolder {
         ImageView img;
-        TextView tvName, tvPrice, tvDesc;
+        TextView tvName, tvPrice, tvDesc, tvOldPrice, tvDiscountTag;
 
         public OfferViewHolder(@NonNull View itemView) {
             super(itemView);
@@ -73,6 +73,8 @@ public class OfferAdapter extends RecyclerView.Adapter<OfferAdapter.OfferViewHol
             tvName = itemView.findViewById(R.id.tvOfferName);
             tvPrice = itemView.findViewById(R.id.tvOfferPrice);
             tvDesc = itemView.findViewById(R.id.tvOfferDesc);
+            tvOldPrice = itemView.findViewById(R.id.tvOfferOldPrice); // ✅ agora bate com o XML
+            tvDiscountTag = itemView.findViewById(R.id.discountTag);
         }
 
         void bind(ProductPrice offer) {
@@ -81,7 +83,7 @@ public class OfferAdapter extends RecyclerView.Adapter<OfferAdapter.OfferViewHol
             tvName.setText(offer.product.name != null ? offer.product.name : "Oferta sem nome");
             tvPrice.setText(String.format("R$ %.2f", offer.price));
 
-            // 🔹 Mostra a descrição do produto (se existir)
+            // --- Exibe descrição ou validade ---
             if (offer.product.description != null && !offer.product.description.isEmpty()) {
                 tvDesc.setText(offer.product.description);
             } else if (offer.ends_at != null) {
@@ -90,12 +92,38 @@ public class OfferAdapter extends RecyclerView.Adapter<OfferAdapter.OfferViewHol
                 tvDesc.setText("Promoção por tempo limitado");
             }
 
-            if (offer.product.image_url != null) {
+            // --- Imagem ---
+            if (offer.product.image_url != null && !offer.product.image_url.isEmpty()) {
                 Glide.with(itemView.getContext())
                         .load(offer.product.image_url)
                         .placeholder(R.drawable.placeholder)
+                        .error(R.drawable.placeholder)
                         .into(img);
+            } else {
+                img.setImageResource(R.drawable.placeholder);
             }
+
+            // --- Promoção ---
+            boolean hasPromo = Boolean.TRUE.equals(offer.product.has_promotion);
+
+            if (hasPromo
+                    && offer.product.old_price != null
+                    && offer.product.old_price > offer.price) {
+
+                tvOldPrice.setVisibility(View.VISIBLE);
+                tvDiscountTag.setVisibility(View.VISIBLE);
+
+                tvOldPrice.setText(String.format("R$ %.2f", offer.product.old_price));
+                tvOldPrice.setPaintFlags(tvOldPrice.getPaintFlags() | android.graphics.Paint.STRIKE_THRU_TEXT_FLAG);
+
+                double desconto = ((offer.product.old_price - offer.price) / offer.product.old_price) * 100;
+                tvDiscountTag.setText(String.format(Locale.getDefault(), "-%.0f%%", desconto));
+
+            } else {
+                tvOldPrice.setVisibility(View.GONE);
+                tvDiscountTag.setVisibility(View.GONE);
+            }
+
         }
     }
 }

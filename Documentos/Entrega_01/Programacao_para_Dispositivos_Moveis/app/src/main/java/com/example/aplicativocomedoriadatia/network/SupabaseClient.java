@@ -57,7 +57,24 @@ public class SupabaseClient {
                 throw new IOException("HTTP " + response.code() + " ao GET " + path);
             }
             String body = response.body() != null ? response.body().string() : "[]";
-            return gson.fromJson(body, listType);
+            List<T> list = gson.fromJson(body, listType);
+
+            // ⚙️ Ajuste automático para a lista de produtos
+            if (list != null && !list.isEmpty() && list.get(0) instanceof com.example.aplicativocomedoriadatia.model.Product) {
+                for (T item : list) {
+                    com.example.aplicativocomedoriadatia.model.Product p =
+                            (com.example.aplicativocomedoriadatia.model.Product) item;
+
+                    if (Boolean.TRUE.equals(p.has_promotion) && p.promotion_price != null) {
+                        p.old_price = p.price;          // guarda o preço original
+                        p.price = p.promotion_price;    // aplica o preço promocional
+                    } else {
+                        p.old_price = p.price;          // sem promoção → mantém igual
+                    }
+                }
+            }
+
+            return list;
         }
     }
 

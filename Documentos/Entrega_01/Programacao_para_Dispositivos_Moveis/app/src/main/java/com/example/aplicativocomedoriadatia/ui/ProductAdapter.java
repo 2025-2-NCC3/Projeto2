@@ -66,9 +66,25 @@ public class ProductAdapter extends RecyclerView.Adapter<ProductAdapter.VH> {
         // Nome
         h.name.setText(p.name != null ? p.name : "Produto");
 
-        // Preço (usando cost_estimated como preço)
-        double val = p.price;
-        h.price.setText(brl.format(val));
+        // Verifica se há promoção
+        if (p.has_promotion && p.old_price > 0 && p.price < p.old_price) {
+            h.oldPrice.setVisibility(View.VISIBLE);
+            h.discountTag.setVisibility(View.VISIBLE);
+
+            h.oldPrice.setText(brl.format(p.old_price));
+            h.oldPrice.setPaintFlags(h.oldPrice.getPaintFlags() | android.graphics.Paint.STRIKE_THRU_TEXT_FLAG);
+
+            h.price.setText(brl.format(p.price));
+
+            // Calcula desconto %
+            double desconto = ((p.old_price - p.price) / p.old_price) * 100;
+            h.discountTag.setText(String.format(Locale.getDefault(), "-%.0f%%", desconto));
+        } else {
+            // Sem promoção
+            h.oldPrice.setVisibility(View.GONE);
+            h.discountTag.setVisibility(View.GONE);
+            h.price.setText(brl.format(p.price));
+        }
 
         // Imagem
         if (p.image_url != null && !p.image_url.isEmpty()) {
@@ -97,6 +113,7 @@ public class ProductAdapter extends RecyclerView.Adapter<ProductAdapter.VH> {
         }
     }
 
+
     @Override
     public int getItemCount() {
         return items.size();
@@ -108,18 +125,20 @@ public class ProductAdapter extends RecyclerView.Adapter<ProductAdapter.VH> {
         final TextView name;
         final TextView price;
         final ImageButton btnAdd;
+        final TextView oldPrice;
+        final TextView discountTag;
 
         VH(@NonNull View v) {
             super(v);
             img = v.findViewById(R.id.img);
             name = v.findViewById(R.id.name);
             price = v.findViewById(R.id.price);
-            btnAdd = v.findViewById(R.id.btnAdd); // botão de adicionar ao carrinho (se existir)
+            btnAdd = v.findViewById(R.id.btnAdd); // botão de adicionar ao carrinho
+            oldPrice = v.findViewById(R.id.oldPrice);
+            discountTag = v.findViewById(R.id.discountTag);
 
             if (img == null || name == null || price == null) {
-                throw new IllegalStateException(
-                        "item_product.xml precisa ter os IDs: @id/img, @id/name, @id/price e opcionalmente @id/btnAdd"
-                );
+                throw new IllegalStateException();
             }
         }
     }

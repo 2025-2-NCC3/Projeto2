@@ -4,9 +4,9 @@ import com.google.gson.annotations.SerializedName;
 import java.io.Serializable;
 
 /**
- * Modelo compatível com a tabela produtos_teste.
- * Usado na tela de ofertas e detalhes.
- */
+
+ Modelo compatível com a tabela produtos_teste.
+ Usado na tela de ofertas e detalhes.*/
 public class ProductPrice implements Serializable {
     private static final long serialVersionUID = 1L;
 

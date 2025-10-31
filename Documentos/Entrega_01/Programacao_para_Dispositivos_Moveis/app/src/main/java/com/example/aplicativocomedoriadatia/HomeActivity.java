@@ -416,24 +416,20 @@ public class HomeActivity extends AppCompatActivity {
     /** Monta o endpoint para a tabela 'produtos_teste'. */
     private String buildProductsEndpoint(String q) {
         String base = "produtos_teste"
-                + "?select="
-                + "id,slug,name,description,image_url,"
-                + "is_active,stock_qty,"
-                + "price,promotion_price,has_promotion,"
-                + "starts_at,ends_at,"
-                + "features,nutrition,"
-                + "created_at,updated_at"
+                + "?select=id,slug,name,description,image_url,price,has_promotion,promotion_price,starts_at,ends_at,features,nutrition,is_active,stock_qty,created_at,updated_at"
                 + "&is_active=eq.true"
-                + "&order=created_at.desc"   // <<< ordena por lançamentos
-                + "&limit=50";
+                + "&order=created_at.desc"
+                + "&limit=12";
 
         if (q != null && !q.trim().isEmpty()) {
             String pattern = "*" + q.trim() + "*";
             String encoded = Uri.encode(pattern);
             base += "&name=ilike." + encoded;
         }
+
         return base;
     }
+
 
     // ========= Notificações baseadas em novos produtos =========
 

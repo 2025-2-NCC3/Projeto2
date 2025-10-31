@@ -55,5 +55,27 @@
             android:textColor="@android:color/darker_gray"
             android:maxLines="2"
             android:ellipsize="end" />
+
+        <TextView
+            android:id="@+id/tvOfferOldPrice"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:textSize="13sp"
+            android:textColor="#888"
+            android:visibility="gone"
+            android:layout_marginTop="2dp"
+            android:maxLines="1" />
+
+        <TextView
+            android:id="@+id/discountTag"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textSize="12sp"
+            android:textColor="@android:color/white"
+            android:background="@drawable/bg_discount_tag"
+            android:padding="4dp"
+            android:layout_marginTop="4dp"
+            android:layout_gravity="start"
+            android:visibility="gone" />
     </LinearLayout>
 </androidx.cardview.widget.CardView>

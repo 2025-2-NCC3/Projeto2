@@ -4,9 +4,9 @@ import com.google.gson.annotations.SerializedName;
 import java.io.Serializable;
 
 /**
- * Modelo atualizado para refletir a tabela pública produtos_teste
- * do Supabase. Inclui campos de preço, promoção e JSONB.
- */
+
+ Modelo atualizado para refletir a tabela pública produtos_teste
+ do Supabase. Inclui campos de preço, promoção e JSONB.*/
 public class Product implements Serializable {
     private static final long serialVersionUID = 1L;
 
@@ -24,9 +24,12 @@ public class Product implements Serializable {
     @SerializedName("stock_qty")    public int stock_qty;
 
     // Preços e promoções
+
     @SerializedName("price")             public double price;             // preço base (price)
     @SerializedName("promotion_price")   public Double promotion_price;   // preço promocional (pode ser null)
     @SerializedName("has_promotion")     public Boolean has_promotion;
+    @SerializedName("old_price")         public Double old_price;
+
 
     // Período da promoção
     @SerializedName("starts_at")    public String starts_at;

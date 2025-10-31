@@ -55,7 +55,6 @@ public class OffersActivity extends AppCompatActivity {
     private TextView tvBadge;
 
     private ImageButton backBTN;
-    // Removido: private ImageButton cartBTN;  // (evita carrinho duplicado)
 
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
@@ -70,7 +69,6 @@ public class OffersActivity extends AppCompatActivity {
         recycler = findViewById(R.id.recyclerProducts);
         errorBox = findViewById(R.id.errorBox);
         backBTN  = findViewById(R.id.backBTN);
-        // Removido: cartBTN = findViewById(R.id.cartBTN);
 
         recycler.setLayoutManager(new GridLayoutManager(this, 2));
         recycler.setAdapter(adapter);
@@ -90,12 +88,6 @@ public class OffersActivity extends AppCompatActivity {
         window.setStatusBarColor(ContextCompat.getColor(this, R.color.green));
 
         backBTN.setOnClickListener(v -> finish());
-
-        // Removido: listener do cartBTN (carrinho duplicado)
-        // cartBTN.setOnClickListener(v -> {
-        //     Intent it = new Intent(this, CartActivity.class);
-        //     startActivity(it);
-        // });
     }
 
     @Override
@@ -167,10 +159,11 @@ public class OffersActivity extends AppCompatActivity {
                                 + "description,"
                                 + "image_url,"
                                 + "nutrition,"
-                                + "price:promotion_price,"
+                                + "price,"
+                                + "promotion_price,"
+                                + "has_promotion,"
                                 + "starts_at,"
-                                + "ends_at,"
-                                + "has_promotion"
+                                + "ends_at"
                                 + "&has_promotion=eq.true"
                                 + "&order=starts_at.desc";
 
@@ -187,7 +180,6 @@ public class OffersActivity extends AppCompatActivity {
 
                         ProductPrice p = new ProductPrice();
                         p.id        = r.id;
-                        p.price     = r.price;       // alias: promotion_price -> price
                         p.starts_at = r.starts_at;
                         p.ends_at   = r.ends_at;
 
@@ -197,8 +189,21 @@ public class OffersActivity extends AppCompatActivity {
                         prod.name        = r.name;
                         prod.image_url   = r.image_url;
                         prod.description = r.description;
-                        prod.nutrition   = r.nutrition;  // JSONB -> Object
+                        prod.nutrition   = r.nutrition;
 
+                        // 🔹 Preenche informações de promoção corretamente:
+                        prod.has_promotion = Boolean.TRUE.equals(r.has_promotion);
+                        prod.price = r.price;                    // preço original
+                        prod.promotion_price = r.promotion_price; // preço promocional
+                        prod.old_price = r.price;                // preço antigo riscado
+
+                        // Se tiver promoção, define o preço base como o promocional
+                        if (prod.has_promotion && prod.promotion_price != null) {
+                            prod.price = prod.promotion_price;
+                        }
+
+                        // 🔹 Copia para ProductPrice (compatível com o Adapter)
+                        p.price = prod.price;
                         p.product = prod;
 
                         list.add(p);
@@ -314,14 +319,15 @@ public class OffersActivity extends AppCompatActivity {
         errorBox.setVisibility(visible ? View.VISIBLE : View.GONE);
     }
 
-    // ---- POJO para a tabela nova (pode mover para um package model se preferir) ----
+    // ---- POJO para refletir a tabela 'produtos_teste' ----
     static class ProdutoTeste {
         public String id;
         public String name;
         public String description;
         public String image_url;
-        public Object nutrition;   // JSONB
-        public double price;       // alias de promotion_price
+        public Object nutrition;
+        public double price;              // preço original
+        public Double promotion_price;    // preço promocional
         public String starts_at;
         public String ends_at;
         public Boolean has_promotion;
