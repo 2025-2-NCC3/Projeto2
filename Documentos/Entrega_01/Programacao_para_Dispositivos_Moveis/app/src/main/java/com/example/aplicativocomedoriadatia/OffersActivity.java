@@ -30,10 +30,16 @@ import com.facebook.shimmer.ShimmerFrameLayout;
 import com.google.gson.reflect.TypeToken;
 
 import java.lang.reflect.Type;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
+/**
+ * Tela de Ofertas lendo da tabela 'produtos_teste'.
+ * Filtra itens com promoção (has_promotion = true), ordena por starts_at desc
+ * e mapeia promotion_price -> price para manter compatibilidade com ProductPrice.
+ */
 public class OffersActivity extends AppCompatActivity {
 
     private static final String TAG = "OffersActivity";
@@ -49,7 +55,7 @@ public class OffersActivity extends AppCompatActivity {
     private TextView tvBadge;
 
     private ImageButton backBTN;
-    private ImageButton cartBTN;
+    // Removido: private ImageButton cartBTN;  // (evita carrinho duplicado)
 
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
@@ -58,12 +64,13 @@ public class OffersActivity extends AppCompatActivity {
         setContentView(R.layout.activity_offers);
 
         Toolbar toolbar = findViewById(R.id.toolbar);
+        setSupportActionBar(toolbar);
 
         shimmer  = findViewById(R.id.shimmerContainer);
         recycler = findViewById(R.id.recyclerProducts);
         errorBox = findViewById(R.id.errorBox);
         backBTN  = findViewById(R.id.backBTN);
-        cartBTN  = findViewById(R.id.cartBTN);
+        // Removido: cartBTN = findViewById(R.id.cartBTN);
 
         recycler.setLayoutManager(new GridLayoutManager(this, 2));
         recycler.setAdapter(adapter);
@@ -72,24 +79,30 @@ public class OffersActivity extends AppCompatActivity {
 
         setupRecycler();
         fetchOffers();
-        NavbarHelper.setup(this);
+
+        try {
+            NavbarHelper.setup(this);
+        } catch (Throwable t) {
+            Log.w(TAG, "NavbarHelper.setup() ausente/ignorado", t);
+        }
 
         Window window = getWindow();
         window.setStatusBarColor(ContextCompat.getColor(this, R.color.green));
 
         backBTN.setOnClickListener(v -> finish());
 
-        cartBTN.setOnClickListener(v -> {
-            Intent it = new Intent(this, CartActivity.class);
-            startActivity(it);
-        });
+        // Removido: listener do cartBTN (carrinho duplicado)
+        // cartBTN.setOnClickListener(v -> {
+        //     Intent it = new Intent(this, CartActivity.class);
+        //     startActivity(it);
+        // });
     }
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         getMenuInflater().inflate(R.menu.menu_home_top, menu);
         MenuItem cartItem = menu.findItem(R.id.action_cart);
-        cartActionView = cartItem.getActionView();
+        cartActionView = cartItem != null ? cartItem.getActionView() : null;
 
         if (cartActionView != null) {
             tvBadge = cartActionView.findViewById(R.id.tvBadge);
@@ -146,56 +159,70 @@ public class OffersActivity extends AppCompatActivity {
             try {
                 SupabaseClient api = new SupabaseClient(getApplicationContext());
 
-                // importante pra desserializar igual ao JSON que vem do Supabase
-                Type type = new TypeToken<List<ProductPrice>>(){}.getType();
-
                 String endpoint =
-                        "product_prices"
-                                + "?select=*,product:product_id(id,name,image_url,description,nutrition)"
+                        "produtos_teste"
+                                + "?select="
+                                + "id,"
+                                + "name,"
+                                + "description,"
+                                + "image_url,"
+                                + "nutrition,"
+                                + "price:promotion_price,"
+                                + "starts_at,"
+                                + "ends_at,"
+                                + "has_promotion"
+                                + "&has_promotion=eq.true"
                                 + "&order=starts_at.desc";
 
                 Log.d(TAG, "fetchOffers(): endpoint = " + endpoint);
 
-                List<ProductPrice> list = api.getList(endpoint, type);
+                Type rawType = new TypeToken<List<ProdutoTeste>>(){}.getType();
+                List<ProdutoTeste> raw = api.getList(endpoint, rawType);
 
-                // Loga a resposta bruta que foi parseada
-                if (list == null) {
-                    Log.w(TAG, "fetchOffers(): list == null (API retornou null)");
-                } else {
-                    Log.d(TAG, "fetchOffers(): list size = " + list.size());
-                    for (int i = 0; i < list.size(); i++) {
-                        ProductPrice p = list.get(i);
-                        Log.d(TAG, "offer[" + i + "]: "
-                                + "id=" + p.id
+                List<ProductPrice> list = new ArrayList<>();
+                if (raw != null) {
+                    for (int i = 0; i < raw.size(); i++) {
+                        ProdutoTeste r = raw.get(i);
+                        if (r == null) continue;
+
+                        ProductPrice p = new ProductPrice();
+                        p.id        = r.id;
+                        p.price     = r.price;       // alias: promotion_price -> price
+                        p.starts_at = r.starts_at;
+                        p.ends_at   = r.ends_at;
+
+                        com.example.aplicativocomedoriadatia.model.Product prod =
+                                new com.example.aplicativocomedoriadatia.model.Product();
+                        prod.id          = r.id;
+                        prod.name        = r.name;
+                        prod.image_url   = r.image_url;
+                        prod.description = r.description;
+                        prod.nutrition   = r.nutrition;  // JSONB -> Object
+
+                        p.product = prod;
+
+                        list.add(p);
+
+                        Log.d(TAG, "offer[" + i + "]: id=" + p.id
                                 + ", price=" + p.price
                                 + ", starts_at=" + p.starts_at
-                                + ", ends_at=" + p.ends_at
-                        );
-
-                        // cuidado: dependendo do seu model, pode ser p.product ou p.products
+                                + ", ends_at=" + p.ends_at);
                         if (p.product != null) {
-                            Log.d(TAG, "offer[" + i + "].product: "
-                                    + "name=" + p.product.name
-                                    + ", img=" + p.product.image_url
-                            );
-                        } else {
-                            Log.w(TAG, "offer[" + i + "].product == null");
+                            Log.d(TAG, "offer[" + i + "].product: name=" + p.product.name
+                                    + ", img=" + p.product.image_url);
                         }
                     }
+                } else {
+                    Log.w(TAG, "fetchOffers(): resposta bruta == null");
                 }
 
                 runOnUiThread(() -> showContent(list));
 
             } catch (Exception e) {
                 Log.e(TAG, "fetchOffers(): Erro ao buscar ofertas", e);
-
-                final String userMsg;
-                if (e.getMessage() != null) {
-                    userMsg = "Erro ao carregar ofertas: " + e.getMessage();
-                } else {
-                    userMsg = "Erro ao carregar ofertas (exceção sem mensagem)";
-                }
-
+                final String userMsg = (e.getMessage() != null)
+                        ? "Erro ao carregar ofertas: " + e.getMessage()
+                        : "Erro ao carregar ofertas (exceção sem mensagem)";
                 runOnUiThread(() -> showError(userMsg));
             }
         });
@@ -215,7 +242,6 @@ public class OffersActivity extends AppCompatActivity {
         shimmer.stopShimmer();
         shimmer.setVisibility(View.GONE);
 
-        // protege contra null pra evitar crash
         if (offers == null) {
             Log.w(TAG, "showContent(): offers == null, mostrando erro genérico");
             recycler.setVisibility(View.GONE);
@@ -234,7 +260,6 @@ public class OffersActivity extends AppCompatActivity {
             return;
         }
 
-        // se chegou aqui tem item
         errorBoxVisibility(false);
         recycler.setVisibility(View.VISIBLE);
 
@@ -259,8 +284,7 @@ public class OffersActivity extends AppCompatActivity {
         recycler.setAdapter(adapter);
 
         adapter.setOnItemClickListener(offer -> {
-            Log.d(TAG, "onItemClick(): offer clicada = " +
-                    (offer != null ? offer.id : "null"));
+            Log.d(TAG, "onItemClick(): offer clicada = " + (offer != null ? offer.id : "null"));
             openProductDetails(offer);
         });
     }
@@ -271,18 +295,8 @@ public class OffersActivity extends AppCompatActivity {
             return;
         }
 
-        // ATENÇÃO AQUI:
-        // no seu código original você usou "offer.product".
-        // Se sua classe tiver "public Product products;" em vez de "product",
-        // você precisa alinhar. Vou logar os dois.
         if (offer.product == null) {
             Log.w(TAG, "openProductDetails(): offer.product == null");
-        } else {
-            Log.d(TAG, "openProductDetails(): abrindo detalhes do produto " +
-                    offer.product.name);
-        }
-
-        if (offer.product == null) {
             Toast.makeText(this, "Produto inválido.", Toast.LENGTH_SHORT).show();
             return;
         }
@@ -298,5 +312,18 @@ public class OffersActivity extends AppCompatActivity {
     private void errorBoxVisibility(boolean visible) {
         if (errorBox == null) return;
         errorBox.setVisibility(visible ? View.VISIBLE : View.GONE);
+    }
+
+    // ---- POJO para a tabela nova (pode mover para um package model se preferir) ----
+    static class ProdutoTeste {
+        public String id;
+        public String name;
+        public String description;
+        public String image_url;
+        public Object nutrition;   // JSONB
+        public double price;       // alias de promotion_price
+        public String starts_at;
+        public String ends_at;
+        public Boolean has_promotion;
     }
 }

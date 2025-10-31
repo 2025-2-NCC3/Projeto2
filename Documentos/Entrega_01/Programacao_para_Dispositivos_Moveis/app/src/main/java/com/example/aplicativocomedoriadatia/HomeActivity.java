@@ -6,20 +6,26 @@ import android.app.NotificationManager;
 import android.app.PendingIntent;
 import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
+import android.text.TextWatcher;
 import android.util.Log;
+import android.util.SparseArray;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.animation.ScaleAnimation;
 import android.widget.Button;
+import android.widget.HorizontalScrollView;
 import android.widget.ImageButton;
+import android.widget.ImageView; // para imgCart no ActionView
 import android.widget.LinearLayout;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.annotation.ColorInt;
@@ -44,26 +50,32 @@ import com.google.gson.reflect.TypeToken;
 
 import android.graphics.Typeface;
 import android.graphics.drawable.GradientDrawable;
-import android.text.TextWatcher;
-import android.util.SparseArray;
-import android.widget.HorizontalScrollView;
-import android.widget.TextView;
 
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.lang.reflect.Type;
+import java.text.ParsePosition;
+import java.text.SimpleDateFormat;
+import java.time.OffsetDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
+import java.util.Locale;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
 public class HomeActivity extends AppCompatActivity {
 
     private static final String TAG = "HomeActivity";
-    private static final long AUTO_REFRESH_MS = 20_000L;
 
-    private static final String CHANNEL_ID = "promo_channel"; // >>> NOVO TESTE: mesmo canal do PushService
-    private static final int REQ_POST_NOTIF = 1001;            // >>> NOVO TESTE
+    // ===== Refresh/Notificações =====
+    private static final long AUTO_REFRESH_MS = 20_000L;
+    private static final String CHANNEL_ID = "promo_channel";
+    private static final int REQ_POST_NOTIF = 1001;
+    private static final String PREFS_NAME = "home_prefs";
+    private static final String KEY_LAST_CREATED_AT_MS = "last_created_at_ms";
+    private static final int MAX_NOTIFS_PER_CYCLE = 3;
 
     // ===== Variáveis principais =====
     private String lastQuery = "";
@@ -94,7 +106,7 @@ public class HomeActivity extends AppCompatActivity {
     private FilterChipsController chipsController;
     private ExecutorService executor;
 
-    // ===== Badge do carrinho =====
+    // ===== Badge do carrinho (no ActionView do menu) =====
     private TextView tvBadge;
 
     // ===== Busca com debounce =====
@@ -102,7 +114,6 @@ public class HomeActivity extends AppCompatActivity {
     private Runnable searchRunnable;
 
     private ImageButton cartBTN;
-
 
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
@@ -118,7 +129,6 @@ public class HomeActivity extends AppCompatActivity {
         btnSeeAll = findViewById(R.id.btnSeeAll);
         chipsContainer = findViewById(R.id.chipsContainer);
         etSearch = findViewById(R.id.etSearch);
-
         cartBTN = findViewById(R.id.cartBTN);
 
         toolbar = findViewById(R.id.toolbar);
@@ -133,106 +143,36 @@ public class HomeActivity extends AppCompatActivity {
         executor = Executors.newSingleThreadExecutor();
         fetchProducts(null);
 
-        cartBTN.setOnClickListener(v -> {
-            Intent it = new Intent(this, CartActivity.class);
-            startActivity(it);
-        });
-
-        // >>> NOVO TESTE: pedir permissão de notificação (Android 13+) e depois disparar notificação fake
-        askNotificationPermissionAndTest();
-    }
-
-    // >>> NOVO TESTE: pede permissão se precisa. Quando tiver permissão, chama showLocalTestNotification()
-    private void askNotificationPermissionAndTest() {
-        if (Build.VERSION.SDK_INT >= 33) {
-            if (ContextCompat.checkSelfPermission(
-                    this,
-                    Manifest.permission.POST_NOTIFICATIONS
-            ) != PackageManager.PERMISSION_GRANTED) {
-
-                ActivityCompat.requestPermissions(
-                        this,
-                        new String[]{ Manifest.permission.POST_NOTIFICATIONS },
-                        REQ_POST_NOTIF
-                );
-            } else {
-                // já tem permissão
-                showLocalTestNotification();
-            }
-        } else {
-            // versões antigas não precisam
-            showLocalTestNotification();
+        if (cartBTN != null) {
+            cartBTN.setOnClickListener(v -> {
+                Intent it = new Intent(this, CartActivity.class);
+                startActivity(it);
+            });
         }
+
+        // Notificações: cria canal + pede permissão (se necessário)
+        ensureNotificationChannel();
+        askNotificationPermissionIfNeeded();
     }
 
-    // >>> NOVO TESTE: callback da permissão
+    // ===== MENU / ACTION VIEW: infla menu e conecta o badge =====
     @Override
-    public void onRequestPermissionsResult(
-            int requestCode,
-            String[] permissions,
-            int[] grantResults
-    ) {
-        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
-        if (requestCode == REQ_POST_NOTIF) {
-            boolean granted = grantResults.length > 0 &&
-                    grantResults[0] == PackageManager.PERMISSION_GRANTED;
-            if (granted) {
-                showLocalTestNotification();
-            } else {
-                Log.w(TAG, "Permissão de notificação negada. Sem notificação de teste.");
-            }
+    public boolean onCreateOptionsMenu(Menu menu) {
+        getMenuInflater().inflate(R.menu.menu_home_top, menu);
+        MenuItem cartItem = menu.findItem(R.id.action_cart);
+        View actionView = (cartItem != null) ? cartItem.getActionView() : null;
+
+        if (actionView != null) {
+            tvBadge = actionView.findViewById(R.id.tvBadge);
+            ImageView imgCart = actionView.findViewById(R.id.imgCart);
+            updateCartBadge(false);
+
+            actionView.setOnClickListener(v -> {
+                startActivity(new Intent(this, CartActivity.class));
+            });
         }
+        return true;
     }
-
-    // >>> NOVO TESTE: notificação local simulando "nova promoção"
-    private void showLocalTestNotification() {
-        String title = "🍔 Promoção da Tia!";
-        String body  = "Nova coxinha com desconto chegou no cardápio 😋";
-
-        NotificationManager nm = (NotificationManager) getSystemService(NOTIFICATION_SERVICE);
-
-        // canal (Android 8+)
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            NotificationChannel ch = new NotificationChannel(
-                    CHANNEL_ID,
-                    "Promoções da Comedoria",
-                    NotificationManager.IMPORTANCE_HIGH
-            );
-            nm.createNotificationChannel(ch);
-        }
-
-        // Quando clicar, volta pra HomeActivity
-        Intent intent = new Intent(this, HomeActivity.class);
-        intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_SINGLE_TOP);
-
-        PendingIntent pi = PendingIntent.getActivity(
-                this,
-                0,
-                intent,
-                Build.VERSION.SDK_INT >= Build.VERSION_CODES.S
-                        ? PendingIntent.FLAG_IMMUTABLE | PendingIntent.FLAG_UPDATE_CURRENT
-                        : PendingIntent.FLAG_UPDATE_CURRENT
-        );
-
-        NotificationCompat.BigTextStyle bigStyle =
-                new NotificationCompat.BigTextStyle()
-                        .bigText(body)
-                        .setBigContentTitle(title);
-
-        NotificationCompat.Builder builder =
-                new NotificationCompat.Builder(this, CHANNEL_ID)
-                        .setSmallIcon(R.drawable.ic_logo_comedoria)
-                        .setContentTitle(title)
-                        .setContentText(body)
-                        .setStyle(bigStyle)
-                        .setPriority(NotificationCompat.PRIORITY_HIGH)
-                        .setAutoCancel(true)
-                        .setContentIntent(pi);
-
-        nm.notify((int) System.currentTimeMillis(), builder.build());
-    }
-    // <<< FIM DA PARTE DE TESTE
-
 
     @Override
     public boolean onPrepareOptionsMenu(Menu menu) {
@@ -277,7 +217,8 @@ public class HomeActivity extends AppCompatActivity {
             if (animate) {
                 ScaleAnimation sa = new ScaleAnimation(
                         0.8f, 1f, 0.8f, 1f,
-                        tvBadge.getWidth() / 2f, tvBadge.getHeight() / 2f);
+                        tvBadge.getWidth() / 2f, tvBadge.getHeight() / 2f
+                );
                 sa.setDuration(150);
                 tvBadge.startAnimation(sa);
             }
@@ -313,7 +254,6 @@ public class HomeActivity extends AppCompatActivity {
         return et != null && et.getText() != null ? et.getText().toString() : "";
     }
 
-
     // ================= Conteúdo / produtos =================
     private void setupHeaderAndChips() {
         if (btnSeeAll != null) {
@@ -342,8 +282,8 @@ public class HomeActivity extends AppCompatActivity {
 
         Intent it = new Intent(this, ProductDetailsActivity.class);
         it.putExtra("product", product);
-        it.putExtra("price", product.price); // preço original
-        it.putExtra("is_offer", false); // produto normal
+        it.putExtra("price", product.price);
+        it.putExtra("is_offer", false);
         startActivity(it);
     }
 
@@ -378,6 +318,10 @@ public class HomeActivity extends AppCompatActivity {
         if (products != null) masterProducts.addAll(products);
         lastDataSignature = listSignature(products);
         applyCurrentFilters();
+        updateCartBadge(false);
+
+        // <<< Verifica lançamentos e notifica >>>
+        maybeNotifyNewProducts(products);
     }
 
     private void showError(String message) {
@@ -386,6 +330,7 @@ public class HomeActivity extends AppCompatActivity {
         recycler.setVisibility(View.GONE);
         errorBox.setVisibility(View.VISIBLE);
         Toast.makeText(this, message, Toast.LENGTH_SHORT).show();
+        updateCartBadge(false);
     }
 
     private void applyCurrentFilters() {
@@ -422,7 +367,7 @@ public class HomeActivity extends AppCompatActivity {
         return name.contains(q) || desc.contains(q);
     }
 
-    // ========= BUSCA NO SUPABASE =========
+    // ========= BUSCA NO SUPABASE (usando a nova tabela) =========
     private void fetchProducts(@Nullable String query) {
         showLoading();
         final Context appCtx = getApplicationContext();
@@ -436,6 +381,7 @@ public class HomeActivity extends AppCompatActivity {
                 List<Product> list = api.getList(endpoint, type);
                 runOnUiThread(() -> showContent(list));
             } catch (Exception e) {
+                Log.e(TAG, "fetchProducts(): erro", e);
                 runOnUiThread(() -> showError("Falha ao carregar produtos."));
             }
         });
@@ -458,24 +404,188 @@ public class HomeActivity extends AppCompatActivity {
                         if (list != null) masterProducts.addAll(list);
                         lastDataSignature = newSig;
                         applyCurrentFilters();
+                        updateCartBadge(false);
+                        // <<< Notifica lançamentos tb no refresh silencioso >>>
+                        maybeNotifyNewProducts(list);
                     });
                 }
             } catch (Exception ignored) {}
         });
     }
 
+    /** Monta o endpoint para a tabela 'produtos_teste'. */
     private String buildProductsEndpoint(String q) {
-        String base = "products"
-                + "?select=id,slug,name,description,category_id,image_url,is_active,cost_estimated,stock_qty,created_at,updated_at"
+        String base = "produtos_teste"
+                + "?select="
+                + "id,slug,name,description,image_url,"
+                + "is_active,stock_qty,"
+                + "price,promotion_price,has_promotion,"
+                + "starts_at,ends_at,"
+                + "features,nutrition,"
+                + "created_at,updated_at"
                 + "&is_active=eq.true"
-                + "&order=created_at.desc"
-                + "&limit=12";
+                + "&order=created_at.desc"   // <<< ordena por lançamentos
+                + "&limit=50";
+
         if (q != null && !q.trim().isEmpty()) {
             String pattern = "*" + q.trim() + "*";
             String encoded = Uri.encode(pattern);
             base += "&name=ilike." + encoded;
         }
         return base;
+    }
+
+    // ========= Notificações baseadas em novos produtos =========
+
+    private void ensureNotificationChannel() {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            NotificationManager nm = (NotificationManager) getSystemService(NOTIFICATION_SERVICE);
+            NotificationChannel ch = new NotificationChannel(
+                    CHANNEL_ID,
+                    "Novos produtos",
+                    NotificationManager.IMPORTANCE_HIGH
+            );
+            nm.createNotificationChannel(ch);
+        }
+    }
+
+    private void askNotificationPermissionIfNeeded() {
+        if (Build.VERSION.SDK_INT >= 33) {
+            if (ContextCompat.checkSelfPermission(this, Manifest.permission.POST_NOTIFICATIONS)
+                    != PackageManager.PERMISSION_GRANTED) {
+                ActivityCompat.requestPermissions(
+                        this,
+                        new String[]{ Manifest.permission.POST_NOTIFICATIONS },
+                        REQ_POST_NOTIF
+                );
+            }
+        }
+    }
+
+    @Override
+    public void onRequestPermissionsResult(
+            int requestCode, String[] permissions, int[] grantResults
+    ) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
+        // aqui não disparamos nada imediato; as notificações vêm no próximo refresh
+    }
+
+    /** Verifica produtos com created_at > último visto e dispara notificações. */
+    private void maybeNotifyNewProducts(@Nullable List<Product> list) {
+        if (list == null || list.isEmpty()) return;
+
+        long lastSeen = getPrefs().getLong(KEY_LAST_CREATED_AT_MS, 0L);
+
+        // Filtra apenas os realmente novos (com created_at maior que o último visto)
+        List<Product> fresh = new ArrayList<>();
+        long maxSeen = lastSeen;
+        int count = 0;
+
+        for (Product p : list) {
+            if (p == null) continue;
+            long createdMs = parseCreatedAtToMillis(p.created_at);
+            if (createdMs > 0) {
+                if (createdMs > lastSeen) {
+                    fresh.add(p);
+                    count++;
+                    if (count >= MAX_NOTIFS_PER_CYCLE) break; // evita spam
+                }
+                if (createdMs > maxSeen) maxSeen = createdMs;
+            }
+        }
+
+        if (!fresh.isEmpty()) {
+            // Notifica cada novo (ou faça uma agrupada se preferir)
+            for (Product p : fresh) {
+                sendNewProductNotification(p);
+            }
+            // Atualiza o marcador de último created_at visto
+            getPrefs().edit().putLong(KEY_LAST_CREATED_AT_MS, maxSeen).apply();
+        } else {
+            // Mesmo sem notificação, mantém o maior created_at para evitar repetir
+            long top = parseCreatedAtToMillis(list.get(0).created_at);
+            if (top > lastSeen) {
+                getPrefs().edit().putLong(KEY_LAST_CREATED_AT_MS, top).apply();
+            }
+        }
+    }
+
+    /** Envia uma notificação para um único produto novo. */
+    private void sendNewProductNotification(Product p) {
+        if (p == null) return;
+
+        String title = "Novo produto: " + safe(p.name, "Item novo!");
+        String body  = safe(p.description, "Confira as novidades no cardápio.");
+
+        NotificationManager nm = (NotificationManager) getSystemService(NOTIFICATION_SERVICE);
+
+        // Intent para abrir detalhes do produto
+        Intent intent = new Intent(this, ProductDetailsActivity.class);
+        intent.putExtra("product", p);
+        intent.putExtra("price", p.price);
+        intent.putExtra("is_offer", false);
+        intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_SINGLE_TOP);
+
+        PendingIntent pi = PendingIntent.getActivity(
+                this,
+                (int) System.currentTimeMillis(),
+                intent,
+                Build.VERSION.SDK_INT >= Build.VERSION_CODES.S
+                        ? PendingIntent.FLAG_IMMUTABLE | PendingIntent.FLAG_UPDATE_CURRENT
+                        : PendingIntent.FLAG_UPDATE_CURRENT
+        );
+
+        NotificationCompat.Builder builder =
+                new NotificationCompat.Builder(this, CHANNEL_ID)
+                        .setSmallIcon(R.drawable.ic_logo_comedoria)
+                        .setContentTitle(title)
+                        .setContentText(body)
+                        .setStyle(new NotificationCompat.BigTextStyle().bigText(body))
+                        .setPriority(NotificationCompat.PRIORITY_HIGH)
+                        .setAutoCancel(true)
+                        .setContentIntent(pi);
+
+        nm.notify((int) System.currentTimeMillis(), builder.build());
+    }
+
+    private String safe(String v, String fallback) {
+        return (v == null || v.trim().isEmpty()) ? fallback : v.trim();
+    }
+
+    /** Converte created_at ISO → epoch millis (tenta java.time e fallback para SimpleDateFormat). */
+    private long parseCreatedAtToMillis(@Nullable String iso) {
+        if (iso == null || iso.trim().isEmpty()) return 0L;
+
+        // Tenta java.time (API 26+)
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            try {
+                // Supabase geralmente retorna "yyyy-MM-dd'T'HH:mm:ss[.SSS][XXX]"
+                OffsetDateTime odt = OffsetDateTime.parse(iso, DateTimeFormatter.ISO_OFFSET_DATE_TIME);
+                return odt.toInstant().toEpochMilli();
+            } catch (Exception ignored) {}
+            try {
+                // caso venha sem offset/timezone, tenta como LocalDateTime assumindo UTC
+                DateTimeFormatter f = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss[.SSS]");
+                return java.time.LocalDateTime.parse(iso, f)
+                        .toInstant(java.time.ZoneOffset.UTC).toEpochMilli();
+            } catch (Exception ignored) {}
+        }
+
+        // Fallback (API < 26) — tenta alguns formatos comuns
+        try {
+            SimpleDateFormat f = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSSX", Locale.US);
+            return f.parse(iso, new ParsePosition(0)).getTime();
+        } catch (Exception ignored) {}
+        try {
+            SimpleDateFormat f = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ssX", Locale.US);
+            return f.parse(iso, new ParsePosition(0)).getTime();
+        } catch (Exception ignored) {}
+
+        return 0L;
+    }
+
+    private SharedPreferences getPrefs() {
+        return getSharedPreferences(PREFS_NAME, MODE_PRIVATE);
     }
 
     // ========= Utilitários =========
