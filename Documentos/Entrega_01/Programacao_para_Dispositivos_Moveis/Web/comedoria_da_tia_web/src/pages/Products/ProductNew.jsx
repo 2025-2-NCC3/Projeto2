@@ -46,14 +46,19 @@ export default function ProductNew() {
   const [slug, setSlug] = useState("");
   const [description, setDescription] = useState("");
   const [price, setPrice] = useState("");
-  
-  // Campos para promoção
+
+  // Categoria (novo)
+  const [categories, setCategories] = useState([]);      // vindas do BD (distinct)
+  const [categorySel, setCategorySel] = useState("");    // selecionada da lista
+  const [categoryNew, setCategoryNew] = useState("");    // criação de nova
+
+  // Promoção
   const [hasPromotion, setHasPromotion] = useState(false);
   const [promotionPrice, setPromotionPrice] = useState("");
   const [startsAt, setStartsAt] = useState("");
   const [endsAt, setEndsAt] = useState("");
 
-  // Estados relacionados à imagem
+  // Imagem
   const [imageFile, setImageFile] = useState(null);
   const [imageUrlManual, setImageUrlManual] = useState("");
   const [galleryList, setGalleryList] = useState([]);
@@ -71,7 +76,7 @@ export default function ProductNew() {
   ]);
 
   const autoSlug = useMemo(() => slugify(name), [name]);
-  
+
   function onNameBlur() {
     if (!slug) setSlug(autoSlug);
   }
@@ -91,6 +96,28 @@ export default function ProductNew() {
       setGalleryList(data || []);
     }
     fetchGallery();
+  }, []);
+
+  // Carrega categorias existentes (distinct em produtos_teste)
+  useEffect(() => {
+    async function fetchCategories() {
+      const { data, error } = await supabase
+        .from("produtos_teste")
+        .select("category")
+        .neq("category", null)
+        .order("category", { ascending: true });
+
+      if (error) {
+        console.error("Erro carregando categorias:", error);
+        return;
+      }
+
+      const uniq = Array.from(
+        new Set((data || []).map((r) => String(r.category || "").trim()).filter(Boolean))
+      );
+      setCategories(uniq);
+    }
+    fetchCategories();
   }, []);
 
   // Atualiza preview quando seleciona da galeria
@@ -184,7 +211,7 @@ export default function ProductNew() {
         title: "Nome obrigatório",
         message: "Informe o nome do produto.",
       });
-    
+
     const finalSlug = slug || autoSlug;
     if (!finalSlug)
       return notify({
@@ -193,7 +220,7 @@ export default function ProductNew() {
         message: "Não foi possível gerar o slug.",
       });
 
-    // ✅ VALIDAÇÃO DO PREÇO NORMAL (obrigatório)
+    // Preço obrigatório
     const priceNumber = price ? Number(String(price).replace(",", ".")) : null;
     if (!priceNumber || priceNumber <= 0)
       return notify({
@@ -201,6 +228,9 @@ export default function ProductNew() {
         title: "Preço obrigatório",
         message: "Informe um preço válido para o produto.",
       });
+
+    // Categoria: usa a nova se preenchida; senão a selecionada; fallback "Outros"
+    const finalCategory = (categoryNew || "").trim() || (categorySel || "").trim() || "Outros";
 
     // Validar promoção se estiver ativa
     if (hasPromotion && !validatePromotionDates()) {
@@ -212,12 +242,10 @@ export default function ProductNew() {
 
     setSaving(true);
     try {
-      // ======================================================
-      // RESOLVER image_url FINAL
-      // ======================================================
+      // Resolver image_url final
       let finalImageUrl = null;
 
-      // 1) Upload de arquivo novo
+      // Upload de arquivo novo
       if (imageFile) {
         const ext = imageFile.name.split(".").pop()?.toLowerCase() || "jpg";
         const filePath = `products/${finalSlug}_${Date.now()}.${ext}`;
@@ -240,53 +268,48 @@ export default function ProductNew() {
           return;
         }
 
-        const { data: pub } = supabase.storage
-          .from("products")
-          .getPublicUrl(filePath);
+        const { data: pub } = supabase.storage.from("products").getPublicUrl(filePath);
         finalImageUrl = pub?.publicUrl || null;
       }
-      // 2) URL manual digitada
+      // URL manual
       else if (imageUrlManual.trim()) {
         finalImageUrl = imageUrlManual.trim();
       }
-      // 3) Imagem da galeria interna
+      // Galeria interna
       else if (selectedGalleryId) {
-        const item = galleryList.find(
-          (g) => String(g.id) === String(selectedGalleryId)
-        );
+        const item = galleryList.find((g) => String(g.id) === String(selectedGalleryId));
         finalImageUrl = item?.image_url || item?.thumb_url || null;
       }
 
-      // ✅ SALVAR NA TABELA PRODUTOS_TESTE - COM TODOS OS CAMPOS OBRIGATÓRIOS
+      // Monta payload
       const productData = {
-        id: crypto.randomUUID(), // ✅ GERAR ID EXPLICITAMENTE
+        id: crypto.randomUUID(),
         name: name.trim(),
         slug: finalSlug,
-        price: priceNumber, // ✅ PREÇO NORMAL (OBRIGATÓRIO)
+        category: finalCategory, // 👈 NOVO CAMPO
+        price: priceNumber,
         description: description || null,
         image_url: finalImageUrl || null,
-        features: featuresObj || {}, // ✅ DEFAULT PARA JSONB
-        nutrition: nutritionObj || {}, // ✅ DEFAULT PARA JSONB
+        features: featuresObj || {},
+        nutrition: nutritionObj || {},
         is_active: true,
         has_promotion: hasPromotion,
         promotion_price: hasPromotion ? Number(String(promotionPrice).replace(",", ".")) : null,
         starts_at: hasPromotion ? startsAt : null,
         ends_at: hasPromotion ? endsAt : null,
-        stock_qty: 0, // ✅ VALOR DEFAULT
-        created_at: new Date().toISOString(), // ✅ TIMESTAMP EXPLÍCITO
-        updated_at: new Date().toISOString(), // ✅ TIMESTAMP EXPLÍCITO
+        stock_qty: 0,
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString(),
       };
-
-      console.log('Enviando dados:', productData);
 
       const { data: prod, error: pErr } = await supabase
         .from("produtos_teste")
         .insert(productData)
-        .select("id, slug, name")
+        .select("id, slug, name, category")
         .single();
-        
+
       if (pErr) {
-        console.error('Erro detalhado:', pErr);
+        console.error("Erro detalhado:", pErr);
         notify({
           type: "error",
           title: "Erro ao salvar produto",
@@ -296,17 +319,20 @@ export default function ProductNew() {
         return;
       }
 
+      // Se criou uma categoria nova, adiciona localmente à lista para próximos cadastros
+      if (categoryNew && !categories.includes(categoryNew.trim())) {
+        setCategories((prev) => [...prev, categoryNew.trim()].sort());
+      }
+
       notify({
         type: "success",
         title: "Produto cadastrado",
-        message: hasPromotion 
-          ? "Produto criado com promoção ativa!" 
-          : "Produto criado com sucesso!",
+        message: hasPromotion ? "Produto criado com promoção ativa!" : "Produto criado com sucesso!",
       });
-      
+
       setTimeout(() => navigate("/app/produtos", { replace: true }), 700);
     } catch (err) {
-      console.error('Erro inesperado:', err);
+      console.error("Erro inesperado:", err);
       notify({
         type: "error",
         title: "Erro inesperado",
@@ -355,48 +381,28 @@ export default function ProductNew() {
             <label className="pnew-upload">
               <UploadCloud />
               <span>Selecionar arquivo local</span>
-              <input
-                type="file"
-                accept="image/*"
-                onChange={onImageChange}
-                hidden
-              />
+              <input type="file" accept="image/*" onChange={onImageChange} hidden />
             </label>
 
             {/* URL manual */}
             <div className="pnew-label">
-              <span style={{ fontSize: 13, fontWeight: 600, color: "var(--text)" }}>
-                Ou URL da imagem
-              </span>
+              <span className="pnew-span-strong">Ou URL da imagem</span>
               <input
                 type="url"
                 placeholder="https://.../minha-imagem.png"
                 value={imageUrlManual}
                 onChange={(e) => setImageUrlManual(e.target.value)}
               />
-              <small className="pnew-help">
-                Se preencher aqui, ignora o upload.
-              </small>
+              <small className="pnew-help">Se preencher aqui, ignora o upload.</small>
             </div>
 
             {/* Selecionar da galeria interna */}
             <div className="pnew-label">
-              <span style={{ fontSize: 13, fontWeight: 600, color: "var(--text)" }}>
-                Ou escolher da galeria salva
-              </span>
+              <span className="pnew-span-strong">Ou escolher da galeria salva</span>
               <select
                 value={selectedGalleryId}
                 onChange={(e) => setSelectedGalleryId(e.target.value)}
-                className="pnew-gallery-select"
-                style={{
-                  width: "100%",
-                  borderRadius: 10,
-                  padding: "10px 12px",
-                  border: "1px solid var(--border)",
-                  background: "rgba(255,255,255,.06)",
-                  color: "var(--text)",
-                  outline: "none",
-                }}
+                className="pnew-select"
               >
                 <option value="">-- Nenhuma selecionada --</option>
                 {galleryList.map((img) => (
@@ -405,14 +411,10 @@ export default function ProductNew() {
                   </option>
                 ))}
               </select>
-              <small className="pnew-help">
-                Essa lista vem de product_images (Pixabay).
-              </small>
+              <small className="pnew-help">Essa lista vem de product_images (Pixabay).</small>
             </div>
 
-            <p className="pnew-help">
-              Formatos: JPG/PNG/WebP. Ideal ~1000px.
-            </p>
+            <p className="pnew-help">Formatos: JPG/PNG/WebP. Ideal ~1000px.</p>
           </div>
 
           {/* Coluna de dados */}
@@ -443,6 +445,42 @@ export default function ProductNew() {
               <small>Usado como identificador no app/API.</small>
             </label>
 
+            {/* CATEGORIA (novo) */}
+            <div className="pnew-label">
+              <span className="pnew-span-strong">Categoria</span>
+
+              {/* Selecionar existente */}
+              <div className="pnew-inline">
+                <select
+                  className="pnew-select"
+                  value={categorySel}
+                  onChange={(e) => setCategorySel(e.target.value)}
+                >
+                  <option value="">-- Selecionar existente --</option>
+                  {categories.map((c) => (
+                    <option key={c} value={c}>
+                      {c}
+                    </option>
+                  ))}
+                </select>
+
+                <span className="pnew-or">ou</span>
+
+                {/* Criar nova */}
+                <input
+                  className="pnew-input"
+                  type="text"
+                  placeholder="Criar nova (ex.: Salgados)"
+                  value={categoryNew}
+                  onChange={(e) => setCategoryNew(e.target.value)}
+                />
+              </div>
+
+              <small className="pnew-help">
+                Se preencher uma nova, ela terá prioridade sobre a selecionada.
+              </small>
+            </div>
+
             <label className="pnew-label">
               <span>
                 <FileText /> Descrição
@@ -468,7 +506,7 @@ export default function ProductNew() {
               <small>Preço normal de venda ao público</small>
             </label>
 
-            {/* SEÇÃO DE PROMOÇÃO */}
+            {/* PROMOÇÃO */}
             <div className="pnew-promotion-section">
               <label className="pnew-checkbox-label">
                 <input
@@ -497,7 +535,9 @@ export default function ProductNew() {
 
                   <div className="pnew-row">
                     <label className="pnew-label">
-                      <span><Calendar size={14} /> Início da promoção</span>
+                      <span>
+                        <Calendar size={14} /> Início da promoção
+                      </span>
                       <input
                         type="datetime-local"
                         value={startsAt}
@@ -505,7 +545,9 @@ export default function ProductNew() {
                       />
                     </label>
                     <label className="pnew-label">
-                      <span><Calendar size={14} /> Fim da promoção</span>
+                      <span>
+                        <Calendar size={14} /> Fim da promoção
+                      </span>
                       <input
                         type="datetime-local"
                         value={endsAt}
@@ -535,17 +577,13 @@ export default function ProductNew() {
                     className="kv-key"
                     placeholder="ex.: peso_g"
                     value={row.key}
-                    onChange={(e) =>
-                      updateRow(setFeatures, idx, "key", e.target.value)
-                    }
+                    onChange={(e) => updateRow(setFeatures, idx, "key", e.target.value)}
                   />
                   <input
                     className="kv-value"
                     placeholder="ex.: 90"
                     value={row.value}
-                    onChange={(e) =>
-                      updateRow(setFeatures, idx, "value", e.target.value)
-                    }
+                    onChange={(e) => updateRow(setFeatures, idx, "value", e.target.value)}
                   />
                   <button
                     type="button"
@@ -577,17 +615,13 @@ export default function ProductNew() {
                     className="kv-key"
                     placeholder="ex.: kcal"
                     value={row.key}
-                    onChange={(e) =>
-                      updateRow(setNutrition, idx, "key", e.target.value)
-                    }
+                    onChange={(e) => updateRow(setNutrition, idx, "key", e.target.value)}
                   />
                   <input
                     className="kv-value"
                     placeholder="ex.: 210"
                     value={row.value}
-                    onChange={(e) =>
-                      updateRow(setNutrition, idx, "value", e.target.value)
-                    }
+                    onChange={(e) => updateRow(setNutrition, idx, "value", e.target.value)}
                   />
                   <button
                     type="button"

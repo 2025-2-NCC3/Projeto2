@@ -23,6 +23,8 @@ import RequireAuth from './Routes/RequireAuth'
 import RequireAdmin from './Routes/RequireAdmin'
 import Pedidos from './pages/Pedidos/Pedidos'
 import UsersOrders from './pages/Alunos/UsersOrders'
+import Caixa from './pages/Caixa/Caixa'
+import Settings from './pages/Configuracoes/Settings'
 
 function App() {
   const { NotifierHost } = useNotifier()
@@ -52,7 +54,9 @@ function App() {
                 <Route path="produtos/promocao" element={<Promotion />} />
                 <Route path="relatorios" element={<Relatorios />} />
                 <Route path="banco-imagens" element={<BancoDeImagens />} />
-                <Route path="pedidos" element={<Pedidos/>} />
+                <Route path="pedidos" element={<Pedidos />} />
+                <Route path="caixa" element={<Caixa />} />
+                <Route path="config" element={<Settings />} />
               </Route>
             </Route>
           </Route>

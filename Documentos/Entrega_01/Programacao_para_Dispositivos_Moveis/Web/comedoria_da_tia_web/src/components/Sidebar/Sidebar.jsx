@@ -9,6 +9,7 @@ import {
   BarChart3,
   Settings,
   LogOut,
+  BanknoteArrowDown,
   ChevronLeft,
   ChevronRight,
   Images,
@@ -82,7 +83,7 @@ export default function Sidebar() {
         <SbLink
           to="/app"
           icon={<Home size={18} />}
-          label="Dashboard"
+          label="Inicio"
           collapsed={collapsed}
         />
 
@@ -127,12 +128,21 @@ export default function Sidebar() {
           icon={<Settings size={18} />}
           label="Configurações"
           collapsed={collapsed}
-          disabled
         />
+
+      <Section label="Banco de Imagens" collapsed={collapsed} />
         <SbLink
           to="/app/banco-imagens"
           icon={<Images size={18} />}
           label="Banco de Imagens"
+          collapsed={collapsed}
+        />
+
+      <Section label="Caixa / Financeiro" collapsed={collapsed} />
+        <SbLink
+          to="/app/caixa"
+          icon={<BanknoteArrowDown size={18} />}
+          label="Caixa"
           collapsed={collapsed}
         />
 

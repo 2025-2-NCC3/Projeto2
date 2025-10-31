@@ -1,4 +1,4 @@
-import { useEffect, useRef } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
 // eslint-disable-next-line no-unused-vars
 import { motion, AnimatePresence } from 'framer-motion'
@@ -28,8 +28,14 @@ export default function Notifier({
   duration = 3500,
   position = 'top-right',
 }) {
+  const [mounted, setMounted] = useState(false)
   const containerRef = useRef(null)
   const Icon = ICONS[type] || Info
+
+  // Marca como montado (garante que document existe p/ portal)
+  useEffect(() => {
+    setMounted(true)
+  }, [])
 
   // Auto-close timer
   useEffect(() => {
@@ -59,7 +65,7 @@ export default function Notifier({
 
   const stylePos = POSITIONS[position] || POSITIONS['top-right']
 
-  return createPortal(
+  const content = (
     <div className="notifier-root" style={stylePos} aria-live="polite" aria-atomic="true">
       <AnimatePresence>
         {open && (
@@ -72,6 +78,7 @@ export default function Notifier({
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: -12, scale: 0.98 }}
             transition={{ type: 'spring', stiffness: 320, damping: 26, mass: 0.7 }}
+            onMouseDown={(e) => e.stopPropagation()} // evita "outside" acidental
           >
             <div className="notifier-icon">
               <Icon className="icon" aria-hidden="true" />
@@ -80,13 +87,16 @@ export default function Notifier({
               {title && <div className="notifier-title">{title}</div>}
               {message && <div className="notifier-message">{message}</div>}
             </div>
-            <button className="notifier-close" onClick={() => onClose?.()} aria-label="Fechar alerta">
+            <button className="notifier-close" onClick={() => onClose?.()} aria-label="Fechar alerta" type="button">
               <X size={16} />
             </button>
           </motion.div>
         )}
       </AnimatePresence>
-    </div>,
-    document.body
+    </div>
   )
+
+  // Só cria portal após montar (evita erros em build/SSR/HMR)
+  if (!mounted) return null
+  return createPortal(content, document.body)
 }

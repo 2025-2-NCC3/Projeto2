@@ -1,55 +1,65 @@
 import { motion } from "framer-motion";
 import { Images, ArrowLeft } from "lucide-react";
 import { Link } from "react-router-dom";
-
 import PixabayBrowser from "../../components/PixabayBrowser";
 import InternalImageGallery from "../../components/InternalImageGallery";
-
-import "./BancoDeImagens.css"; // novo css dark
+import "./BancoDeImagens.css";
 
 export default function BancoDeImagens() {
   return (
     <div className="imgbank-page">
-      {/* Topbar parecida com Promoções */}
+      {/* TOPO */}
       <div className="imgbank-topbar">
         <div className="imgbank-title">
-          <Images />
-          <div style={{ display: "grid", gap: 2 }}>
+          <div className="imgbank-iconwrap">
+            <Images size={28} />
+          </div>
+          <div className="imgbank-titleset">
             <h1>Banco de Imagens</h1>
             <p className="imgbank-sub">
-              Central de mídia da Comedoria da Tia • pronto pra usar nos
-              produtos e promoções.
+              Central de mídia da <strong>Comedoria da Tia</strong> — encontre e
+              salve imagens para produtos, banners e promoções.
             </p>
           </div>
         </div>
 
         <div className="imgbank-actions">
-          <Link className="btn-outline btn-xs" to="/app/produtos">
+          <Link className="btn-outline" to="/app/produtos">
             <ArrowLeft size={16} />
             Voltar para produtos
           </Link>
         </div>
       </div>
 
-      {/* Card grandão com os 2 painéis lado a lado */}
+      {/* CONTEÚDO PRINCIPAL */}
       <motion.div
         className="imgbank-card"
-        initial={{ opacity: 0, y: 12 }}
+        initial={{ opacity: 0, y: 10 }}
         animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.3 }}
+        transition={{ duration: 0.4 }}
       >
         <div className="imgbank-grid">
-          {/* LADO ESQUERDO: buscar/salvar do Pixabay */}
-          <PixabayBrowser
-            onImageSaved={() => {
-              // Se quiser emitir um toast global depois você pluga o notify
-              // ou dispara um evento customizado.
-              console.log("Imagem salva na galeria interna");
-            }}
-          />
+          {/* Painel 1: Pixabay */}
+          <motion.div
+            className="imgbank-panel"
+            whileHover={{ scale: 1.01 }}
+            transition={{ type: "spring", stiffness: 120 }}
+          >
+            <PixabayBrowser
+              onImageSaved={() =>
+                console.log("Imagem salva na galeria interna")
+              }
+            />
+          </motion.div>
 
-          {/* LADO DIREITO: galeria interna */}
-          <InternalImageGallery />
+          {/* Painel 2: Galeria interna */}
+          <motion.div
+            className="imgbank-panel"
+            whileHover={{ scale: 1.01 }}
+            transition={{ type: "spring", stiffness: 120 }}
+          >
+            <InternalImageGallery />
+          </motion.div>
         </div>
       </motion.div>
     </div>
