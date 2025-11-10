@@ -122,14 +122,6 @@ export default function Sidebar() {
           collapsed={collapsed}
         />
 
-        <Section label="Sistema" collapsed={collapsed} />
-        <SbLink
-          to="/app/config"
-          icon={<Settings size={18} />}
-          label="Configurações"
-          collapsed={collapsed}
-        />
-
       <Section label="Banco de Imagens" collapsed={collapsed} />
         <SbLink
           to="/app/banco-imagens"
@@ -138,11 +130,20 @@ export default function Sidebar() {
           collapsed={collapsed}
         />
 
+
       <Section label="Caixa / Financeiro" collapsed={collapsed} />
         <SbLink
           to="/app/caixa"
           icon={<BanknoteArrowDown size={18} />}
           label="Caixa"
+          collapsed={collapsed}
+        />
+
+        <Section label="Sistema" collapsed={collapsed} />
+        <SbLink
+          to="/app/config"
+          icon={<Settings size={18} />}
+          label="Configurações"
           collapsed={collapsed}
         />
 
