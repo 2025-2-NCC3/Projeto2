@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="utf-8"?>
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="wrap_content"
+    android:layout_height="match_parent"
+    android:paddingEnd="12dp"
+    android:paddingStart="0dp"
+    android:layout_gravity="center_vertical">
+
+    <!-- Ícone do carrinho -->
+    <ImageView
+        android:id="@+id/imgCart"
+        android:layout_width="28dp"
+        android:layout_height="28dp"
+        android:layout_gravity="center"
+        android:src="@drawable/ic_cart"
+        android:tint="@android:color/white"
+        android:contentDescription="@string/app_name" />
+
+    <!-- Badge do carrinho -->
+    <TextView
+        android:id="@+id/tvBadge"
+        android:layout_width="18dp"
+        android:layout_height="18dp"
+        android:layout_gravity="top|end"
+        android:background="@drawable/badge_background"
+        android:gravity="center"
+        android:text="0"
+        android:textColor="@android:color/white"
+        android:textStyle="bold"
+        android:textSize="10sp"
+        android:visibility="gone"
+        android:layout_marginTop="3dp"
+        android:layout_marginEnd="2dp" />
+</FrameLayout>

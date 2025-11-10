@@ -15,8 +15,8 @@
 - **Breno Costa Nascimento** — [GitHub](https://github.com/brenocosta19) | [LinkedIn](https://www.linkedin.com/in/breno-costa-28a401264/)  
 - **Bruno Souza Lima** — [GitHub](https://github.com/BrunoSouza06) | [LinkedIn](https://www.linkedin.com/in/bruno-souza-lima-448850263/)  
 - **Felipe Toshio Yamaschita** — [GitHub](https://github.com/Yamaschita) | [LinkedIn](https://www.linkedin.com/in/felipe-yamaschita-96232b329/)  
-- **Vinicius Nishimura Reis** — [GitHub](https://github.com/Vinishireis) | [LinkedIn](https://www.linkedin.com/in/vinicius-nishimura-reis/)  
 - **Nicolly Silva Soares** — [GitHub](https://github.com/nicollysoarez) | [LinkedIn](https://www.linkedin.com/in/nicolly-silva-soares-10b627171/)  
+- **Vinicius Nishimura Reis** — [GitHub](https://github.com/Vinishireis) | [LinkedIn](https://www.linkedin.com/in/vinicius-nishimura-reis/)  
 
 ### 📚 Professores Orientadores  
 
@@ -149,8 +149,7 @@ npm test
 ## 📜 Licença
 
 Este projeto é licenciado sob a licença **CC BY 4.0**.
-Mais detalhes em: [Creative Commons](https://chooser-beta.creativecommons.org/).
-
+<a href="https://github.com/2025-2-NCC3/Projeto2">CT Dev's (Desenvolvedores da Comedoria da Tia)</a> © 2025 by <a href="https://github.com/github">FECAP;Breno Costa Nascimento;Bruno Souza Lima; Felipe Toshio Yamaschita; Nicolly Silva Soares; Vinícius Nishimura Reis</a> is licensed under <a href="https://creativecommons.org/licenses/by/4.0/">CC BY 4.0</a><img src="https://mirrors.creativecommons.org/presskit/icons/cc.svg" alt="" style="max-width: 1em;max-height:1em;margin-left: .2em;"><img src="https://mirrors.creativecommons.org/presskit/icons/by.svg" alt="" style="max-width: 1em;max-height:1em;margin-left: .2em;">
 ---
 
 ## 🎓 Referências

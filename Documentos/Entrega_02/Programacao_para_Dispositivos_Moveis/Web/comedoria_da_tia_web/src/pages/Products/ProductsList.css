@@ -1,0 +1,272 @@
+:root {
+  --bg: #0f172a;
+  --card: rgba(30, 41, 59, 0.6);
+  --border: rgba(255, 255, 255, 0.08);
+  --text: #e5e7eb;
+  --muted: #94a3b8;
+  --primary: #10b981;
+  --primary2: #059669;
+  --shadow: 0 8px 24px rgba(0, 0, 0, 0.2);
+  --ring: 0 0 0 3px rgba(16, 185, 129, 0.25);
+}
+
+/* === PAGE BASE === */
+.plist-page {
+  min-height: 100vh;
+  padding: 24px;
+  background: linear-gradient(135deg, #0b1220, #0f172a 35%, #065f46 100%);
+  color: var(--text);
+}
+
+/* === TOPBAR === */
+.plist-topbar {
+  max-width: 1100px;
+  margin: 0 auto 12px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+}
+.plist-title { display: flex; align-items: center; gap: 10px; }
+.plist-title h1 { font: 700 22px/1.2 ui-sans-serif, system-ui; margin: 0; }
+.plist-actions { display: flex; gap: 10px; align-items: center; }
+
+/* === BUTTONS === */
+.btn-primary, .btn-outline, .btn-link, .btn-qty, .btn-icon-close {
+  transition: transform .15s ease, box-shadow .15s ease, background-color .15s ease, border-color .15s ease, color .15s ease;
+}
+.btn-primary, .btn-outline {
+  display: inline-flex; align-items: center; gap: 8px;
+  padding: 10px 14px; border-radius: 10px; font-size: 14px; line-height: 1.2; cursor: pointer;
+}
+.btn-primary {
+  background-image: linear-gradient(90deg, var(--primary), var(--primary2));
+  color: #fff; border: 0; box-shadow: 0 10px 24px rgba(16,185,129,.35); text-decoration: none;
+}
+.btn-primary:hover { transform: translateY(-1px); }
+.btn-primary:focus-visible { box-shadow: var(--ring); outline: none; }
+
+.btn-outline { background: transparent; border: 1px solid var(--border); color: var(--text); }
+.btn-outline:hover { background: rgba(255,255,255,.06); }
+.btn-outline:focus-visible { box-shadow: var(--ring); outline: none; }
+
+.btn-link { display: inline-flex; align-items: center; gap: 6px; color: #a7f3d0; background: transparent; border: 0; cursor: pointer; }
+.btn-link:hover { opacity: .9; }
+.btn-link:focus-visible { box-shadow: var(--ring); outline: none; }
+
+/* === ANIMATIONS === */
+.spin { animation: spin 1s linear infinite; }
+@keyframes spin { to { transform: rotate(360deg); } }
+
+/* === TOOLBAR === */
+.plist-toolbar {
+  max-width: 1100px;
+  margin: 0 auto 12px;
+  display: flex; justify-content: space-between; gap: 10px;
+}
+.input-search {
+  flex: 1; display: flex; align-items: center; gap: 8px;
+  padding: 10px 12px; border: 1px solid var(--border); border-radius: 10px; background: rgba(255,255,255,.06);
+}
+.input-search input { flex: 1; background: transparent; border: 0; outline: none; color: var(--text); }
+.input-search:focus-within { box-shadow: var(--ring); }
+
+/* === STATES === */
+.plist-loading, .plist-empty { max-width: 1100px; margin: 32px auto; text-align: center; }
+.plist-empty .btn-primary { margin-top: 10px; }
+
+/* === GRID === */
+.plist-grid {
+  max-width: 1100px; margin: 0 auto;
+  display: grid; grid-template-columns: repeat(auto-fit, minmax(400px, 1fr)); gap: 16px;
+}
+@media (max-width: 920px) { .plist-grid { grid-template-columns: 1fr; } }
+
+/* === CARD === */
+.plist-card {
+  display: flex; flex-direction: column; gap: 12px;
+  background: var(--card); border: 1px solid var(--border); border-radius: 16px; padding: 16px;
+  backdrop-filter: blur(10px);
+  transition: transform .3s ease, box-shadow .3s ease, background-color .3s ease, border-color .3s ease;
+}
+.plist-card:hover { transform: translateY(-2px); box-shadow: var(--shadow); }
+.plist-card.is-off { opacity: .7; }
+
+/* === THUMB === */
+.plist-thumb {
+  width: 100%; height: 180px; border-radius: 12px; overflow: hidden;
+  background: rgba(255,255,255,.05); display: grid; place-items: center;
+}
+.plist-thumb img { width: 100%; height: 100%; object-fit: cover; }
+.thumb-ph { color: var(--muted); font-size: 12px; }
+
+/* === INFO === */
+.plist-info { display: flex; flex-direction: column; gap: 8px; }
+.plist-name { font-weight: 700; font-size: 18px; }
+.plist-meta { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 8px; }
+.pill {
+  background: rgba(255,255,255,.08); border: 1px solid var(--border);
+  border-radius: 999px; padding: 4px 8px; font-size: 12px; color: #d1fae5;
+}
+/* Preço/promo */
+.pill-promo { background: rgba(16,185,129,.12); border-color: rgba(16,185,129,.4); }
+.pill.strike { text-decoration: line-through; opacity: .7; }
+
+/* === NUTRITION === */
+.plist-nutrition {
+  margin: 12px 0; background: rgba(255,255,255,.05); border: 1px solid var(--border);
+  border-radius: 10px; padding: 10px 12px; backdrop-filter: blur(6px);
+}
+.plist-nutrition h4 { font-size: 15px; font-weight: 600; margin: 0 0 6px; color: var(--primary); text-transform: uppercase; letter-spacing: .5px; }
+.plist-nutrition ul { margin: 0; padding-left: 16px; display: grid; gap: 6px; }
+.plist-nutrition li { font-size: 14px; line-height: 1.4; color: var(--text); display: flex; align-items: center; gap: 6px; }
+.plist-nutrition li strong { color: var(--primary2); font-weight: 600; min-width: 90px; display: inline-block; }
+
+/* === KPIS === */
+.plist-kpis { display: grid; grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); gap: 10px; margin-top: 8px; }
+.kpi { background: rgba(255,255,255,.04); border: 1px solid var(--border); border-radius: 10px; padding: 10px; text-align: center; }
+.kpi-label { font-size: 12px; color: var(--muted); display: block; margin-bottom: 4px; }
+.kpi-value { display: flex; align-items: center; justify-content: center; gap: 8px; font-weight: 700; font-size: 14px; }
+
+/* === QUANTITY CONTROLS === */
+.btn-qty {
+  display: inline-flex; align-items: center; justify-content: center;
+  border: 1px solid var(--border); background: rgba(255,255,255,.06);
+  border-radius: 8px; width: 28px; height: 28px; cursor: pointer;
+}
+.btn-qty:hover { background: rgba(255,255,255,.1); transform: translateY(-1px); }
+.btn-qty:focus-visible { box-shadow: var(--ring); outline: none; }
+.qty { min-width: 28px; text-align: center; }
+
+/* === OPS === */
+.plist-ops { display: flex; gap: 12px; justify-content: flex-start; flex-wrap: wrap; margin-top: 8px; }
+
+/* ============ MODAL ============ */
+/* Backdrop SEM blur para não “sumir” o card */
+.modal-backdrop {
+  position: fixed; inset: 0;
+  display: grid; place-items: center;       /* Centralização total */
+  background: rgba(0,0,0,.62);              /* Mais escuro para contraste */
+  z-index: 9999;                             /* Acima de tudo */
+  padding: 16px;
+}
+
+/* Card do modal: grande, com contraste e sombra forte */
+.modal-card {
+  width: min(600px, 96vw);                   /* Promo mais largo e legível */
+  max-height: 92vh;                          /* Cabe na viewport */
+  overflow: auto;                            /* Rola por dentro */
+  background: #0b1020;                       /* Fundo mais claro que o backdrop */
+  border: 1px solid rgba(34,197,94,.35);     /* Borda visível */
+  border-radius: 16px;
+  padding: 20px;
+  color: var(--text);
+  box-shadow:
+    0 24px 60px rgba(0,0,0,.6),
+    0 0 0 1px rgba(34,197,94,.15) inset;     /* contorno interno sutil */
+}
+
+/* Modal largo (edição) */
+.modal-card.wide { width: min(960px, 96vw); }
+
+/* Cabeçalho do modal */
+.modal-head { display: flex; align-items: center; gap: 8px; margin-bottom: 12px; }
+.modal-head h3 { margin: 0; font-size: 18px; }
+.btn-icon-close {
+  margin-left: auto; display: inline-flex; align-items: center; justify-content: center;
+  width: 32px; height: 32px; border-radius: 8px;
+  border: 1px solid var(--border); background: rgba(255,255,255,.06); color: var(--text); cursor: pointer;
+}
+.btn-icon-close:hover { background: rgba(255,255,255,.1); }
+
+/* Conteúdo do modal */
+.modal-sub { color: var(--muted); margin: 6px 0 12px; }
+.modal-form { display: grid; gap: 12px; }
+.modal-form label { display: grid; gap: 6px; }
+.modal-form input,
+.pnew-input, .pnew-select {
+  border: 1px solid var(--border); background: rgba(255,255,255,.06); color: var(--text);
+  border-radius: 10px; padding: 10px 12px; outline: none;
+}
+.modal-form input:focus, .pnew-input:focus, .pnew-select:focus { box-shadow: var(--ring); }
+
+.modal-actions { display: flex; justify-content: flex-end; gap: 10px; margin-top: 6px; }
+
+/* Sumário da promo */
+.promo-summary {
+  display: grid; gap: 6px; margin: 8px 0 12px; font-size: 14px; color: var(--text);
+  background: rgba(255,255,255,.03); border: 1px solid var(--border); border-radius: 10px; padding: 10px 12px;
+}
+
+/* Form em grid (edição completa) */
+.form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+.form-grid .grid-span-2 { grid-column: 1 / -1; }
+
+/* Linha de categoria (select OU input novo) */
+.cat-inline { display: grid; grid-template-columns: 1fr auto 1fr; gap: 10px; align-items: center; }
+.pnew-or { font-size: 12px; color: var(--muted); }
+
+/* Switch "ativo" */
+.switch { display: inline-flex; align-items: center; gap: 10px; margin-top: 4px; }
+.switch input { accent-color: var(--primary); }
+
+/* Botão de remover promoção (ênfase) */
+.btn-outline.danger { border-color: rgba(239,68,68,.45); color: #fecaca; }
+.btn-outline.danger:hover { background: rgba(239,68,68,.1); }
+
+/* === RESPONSIVE === */
+@media (max-width: 920px) {
+  .plist-topbar { flex-direction: column; }
+  .form-grid { grid-template-columns: 1fr; }
+  .modal-card.wide { width: min(96vw, 720px); }
+}
+/* ==== FIX CHROME: força o modal a ficar visível, central e acima de tudo ==== */
+
+/* 1) Backdrop sem blur e com z-index altíssimo */
+.modal-backdrop {
+  position: fixed !important;
+  inset: 0 !important;
+  display: block !important;           /* evita bugs de grid/flex em alguns layouts */
+  background: rgba(0, 0, 0, 0.62) !important;
+  backdrop-filter: none !important;    /* remove o desfoque que “engole” o card */
+  -webkit-backdrop-filter: none !important;
+  z-index: 2147483000 !important;      /* acima até de toolbars fixas */
+  padding: 0 !important;
+}
+
+/* 2) Card do modal: fixa no centro da viewport (independe do layout) */
+.modal-card {
+  position: fixed !important;
+  top: 50% !important;
+  left: 50% !important;
+  transform: translate(-50%, -50%) !important;  /* centra na tela */
+  margin: 0 !important;
+
+  width: clamp(320px, 96vw, 640px) !important;  /* maior pro promo */
+  max-height: 92vh !important;
+  overflow: auto !important;
+
+  background: #0b1020 !important;
+  border: 1px solid rgba(34, 197, 94, 0.35) !important;
+  border-radius: 16px !important;
+  padding: 20px !important;
+  color: #e5e7eb !important;
+
+  z-index: 2147483640 !important;               /* acima do próprio backdrop */
+  box-shadow: 0 24px 60px rgba(0, 0, 0, 0.6), 0 0 0 1px rgba(34,197,94,.15) inset !important;
+
+  /* neutraliza qualquer efeito herdado que possa esconder o card */
+  filter: none !important;
+  -webkit-filter: none !important;
+  will-change: auto !important;
+}
+
+/* 3) Modal largo de edição continua maior */
+.modal-card.wide {
+  width: clamp(360px, 96vw, 960px) !important;
+}
+
+/* 4) Garantia de acessibilidade visual enquanto debuga (pode remover depois) */
+@media (forced-colors: active) {
+  .modal-card { outline: 2px solid CanvasText !important; }
+}

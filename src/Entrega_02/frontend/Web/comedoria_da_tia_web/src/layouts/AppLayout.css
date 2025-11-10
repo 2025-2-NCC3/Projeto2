@@ -1,0 +1,33 @@
+/* Shell geral */
+.app-shell{
+  position: relative;
+  display: grid;
+  grid-template-columns: auto 1fr; /* sidebar | conteúdo (desktop) */
+  min-height: 100dvh;
+  background: transparent;
+  contain: layout paint;
+}
+
+/* Área principal */
+.app-main{
+  min-height: 100dvh;
+  overflow: auto;
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior: contain;          /* evita scroll bleed com o drawer */
+  padding-bottom: env(safe-area-inset-bottom, 0);
+}
+
+/* Em telas <= 920px a SideBar vira drawer fixo (fora do fluxo) */
+@media (max-width: 920px){
+  .app-shell{
+    grid-template-columns: 1fr;          /* só o conteúdo no fluxo */
+  }
+  .app-main{
+    width: 100%;
+    /* garante que o conteúdo não "salte" quando o drawer abre/fecha */
+    min-width: 0;
+  }
+}
+
+/* Opcional: largura máxima do conteúdo (se quiser um container central) */
+/* .app-main > .container{ max-width: 1200px; margin: 0 auto; padding: 16px; } */

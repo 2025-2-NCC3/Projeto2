@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources xmlns:tools="http://schemas.android.com/tools">
+
+    <!-- Tema base fixo (claro) -->
+    <style name="Base.Theme.AplicativoComedoriaDaTia" parent="Theme.Material3.Light.NoActionBar">
+        <!-- Fundo branco -->
+        <item name="android:windowBackground">@color/white</item>
+
+        <!-- Cores principais -->
+        <item name="colorPrimary">@color/green</item>
+        <item name="colorOnPrimary">@color/white</item>
+        <item name="colorSurface">@color/white</item>
+        <item name="colorOnSurface">@color/black</item>
+        <item name="colorOnSecondary">@color/white</item>
+
+        <!-- Desativa totalmente dark mode -->
+        <item name="android:forceDarkAllowed">false</item>
+
+
+    </style>
+
+    <!-- Tema principal -->
+    <style name="Theme.AplicativoComedoriaDaTia" parent="Base.Theme.AplicativoComedoriaDaTia" />
+
+
+    <!-- Variante sem ActionBar (para telas com Toolbar própria) -->
+    <style name="Theme.AplicativoComedoriaDaTia.NoActionBar" parent="Theme.AplicativoComedoriaDaTia">
+        <item name="windowActionBar">false</item>
+        <item name="windowNoTitle">true</item>
+    </style>
+
+    <!-- Tema Splash -->
+    <style name="Theme.AplicativoComedoriaDaTia.Splash" parent="Theme.SplashScreen">
+        <item name="windowSplashScreenBackground">@android:color/white</item>
+        <item name="windowSplashScreenAnimatedIcon">@mipmap/ic_launcher_logo_circulo</item>
+        <item name="postSplashScreenTheme">@style/Theme.AplicativoComedoriaDaTia</item>
+    </style>
+
+</resources>
