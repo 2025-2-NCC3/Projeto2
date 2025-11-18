@@ -11,17 +11,17 @@ export default function Signup() {
   const navigate = useNavigate()
   const [name, setName] = useState('')
   const [email, setEmail] = useState('')
-  const [ra, setRa] = useState('') // ✅ NOVO CAMPO
+  const [ra, setRa] = useState('') // ✅ CAMPO RA
   const [password, setPassword] = useState('')
   const [confirmPassword, setConfirmPassword] = useState('')
   const [acceptTerms, setAcceptTerms] = useState(true)
   const [isLoading, setIsLoading] = useState(false)
 
-  const isValidEmail = (val) => /\S+@\S+\.\S+/.test(val)
-  const isValidRA = (val) => /^[0-9]{6,20}$/.test(val) // ✅ VALIDAÇÃO DO RA
+  const isValidEmail = val => /\S+@\S+\.\S+/.test(val)
+  const isValidRA = val => /^[0-9]{6,20}$/.test(val) // ✅ VALIDAÇÃO DO RA
 
   // ✅ FUNÇÃO DE FALLBACK ATUALIZADA COM RA
-  const ensureUserProfile = async (user) => {
+  const ensureUserProfile = async user => {
     try {
       // Tentativa 1: Verificar se profile já existe
       const { data: existingProfile, error: checkError } = await supabase
@@ -33,6 +33,10 @@ export default function Signup() {
       if (existingProfile) {
         console.log('✅ Profile já existe')
         return { success: true, method: 'existing' }
+      }
+
+      if (checkError && checkError.code !== 'PGRST116') {
+        console.warn('⚠️ Erro ao verificar profile:', checkError)
       }
 
       // Tentativa 2: Criar profile com dados completos (INCLUINDO RA)
@@ -53,8 +57,8 @@ export default function Signup() {
         .single()
 
       if (insertError) {
-        console.warn('❌ Tentativa 2 falhou:', insertError)
-        
+        console.warn('❌ Tentativa 2 de criar profile falhou:', insertError)
+
         // Tentativa 3: Criar profile com dados mínimos (INCLUINDO RA)
         const minimalProfileData = {
           id: user.id,
@@ -79,7 +83,6 @@ export default function Signup() {
 
       console.log('✅ Profile criado com sucesso')
       return { success: true, method: 'created' }
-
     } catch (error) {
       console.error('💥 Erro inesperado no ensureUserProfile:', error)
       return { success: false, error }
@@ -121,30 +124,36 @@ export default function Signup() {
     }
 
     setIsLoading(true)
-    
+
     try {
-      // 1. Criar usuário no Auth
+      // 1. Criar usuário no Auth (MANDANDO RA NO METADATA ✅)
       const { data: authData, error: authError } = await supabase.auth.signUp({
         email: email.toLowerCase(),
         password,
         options: {
-          data: { 
+          data: {
             full_name: name.trim(),
+            ra: ra.trim(), // ✅ ESSENCIAL PRO TRIGGER
             role: 'user'
           },
-          emailRedirectTo: typeof window !== 'undefined' ? `${window.location.origin}/login` : undefined,
-        },
+          // ✅ REDIRECT para a tela de callback após confirmar o e-mail
+          emailRedirectTo:
+            typeof window !== 'undefined'
+              ? `${window.location.origin}/auth/signup-callback`
+              : undefined
+        }
       })
 
       if (authError) {
+        console.error('Erro do Supabase Auth:', authError)
         toast.error(authError.message || 'Falha ao criar conta ❌')
         return
       }
 
       // 2. ✅ FALLBACK: Garantir que profile existe (AGORA COM RA)
-      if (authData.user) {
+      if (authData?.user) {
         const profileResult = await ensureUserProfile(authData.user)
-        
+
         if (!profileResult.success) {
           console.warn('⚠️ Profile não pôde ser criado, mas usuário foi registrado')
           // Não bloqueia o cadastro - usuário pode completar profile depois
@@ -152,10 +161,9 @@ export default function Signup() {
       }
 
       toast.success('Conta criada! Verifique seu e-mail para confirmar ✅')
-      
-      // Redirecionar após sucesso
+
+      // Opcional: redirecionar localmente para login depois de alguns segundos
       setTimeout(() => navigate('/login', { replace: true }), 1500)
-      
     } catch (error) {
       console.error('Erro no signup:', error)
       toast.error('Ocorreu um erro inesperado ❌')
@@ -186,7 +194,7 @@ export default function Signup() {
             type="text"
             placeholder="Nome completo"
             value={name}
-            onChange={(e) => setName(e.target.value)}
+            onChange={e => setName(e.target.value)}
             required
           />
 
@@ -195,17 +203,17 @@ export default function Signup() {
             type="email"
             placeholder="E-mail"
             value={email}
-            onChange={(e) => setEmail(e.target.value)}
+            onChange={e => setEmail(e.target.value)}
             required
           />
 
-          {/* ✅ NOVO CAMPO RA */}
+          {/* ✅ CAMPO RA */}
           <Input
             icon={BookOpen}
             type="text"
             placeholder="RA (apenas números)"
             value={ra}
-            onChange={(e) => setRa(e.target.value.replace(/\D/g, ''))} // Remove não-números
+            onChange={e => setRa(e.target.value.replace(/\D/g, ''))} // Remove não-números
             required
           />
 
@@ -214,7 +222,7 @@ export default function Signup() {
             type="password"
             placeholder="Senha (mín. 6 caracteres)"
             value={password}
-            onChange={(e) => setPassword(e.target.value)}
+            onChange={e => setPassword(e.target.value)}
             required
           />
 
@@ -223,7 +231,7 @@ export default function Signup() {
             type="password"
             placeholder="Confirmar senha"
             value={confirmPassword}
-            onChange={(e) => setConfirmPassword(e.target.value)}
+            onChange={e => setConfirmPassword(e.target.value)}
             required
           />
 
@@ -231,11 +239,17 @@ export default function Signup() {
             <input
               type="checkbox"
               checked={acceptTerms}
-              onChange={(e) => setAcceptTerms(e.target.checked)}
+              onChange={e => setAcceptTerms(e.target.checked)}
             />
             <span>
-              Aceito os <Link to="/termos" className="link">Termos de Uso</Link> e a{' '}
-              <Link to="/privacidade" className="link">Política de Privacidade</Link>
+              Aceito os{' '}
+              <Link to="/termos" className="link">
+                Termos de Uso
+              </Link>{' '}
+              e a{' '}
+              <Link to="/privacidade" className="link">
+                Política de Privacidade
+              </Link>
             </span>
           </label>
 
@@ -250,7 +264,10 @@ export default function Signup() {
           </motion.button>
 
           <p className="login">
-            Já possui conta? <Link to="/login" className="link">Entrar</Link>
+            Já possui conta?{' '}
+            <Link to="/login" className="link">
+              Entrar
+            </Link>
           </p>
         </form>
       </motion.div>
