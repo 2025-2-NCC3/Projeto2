@@ -3,7 +3,7 @@ import { Link, useNavigate } from 'react-router-dom'
 import { motion } from 'framer-motion'
 import { ChefHat, CheckCircle2, AlertTriangle } from 'lucide-react'
 import supabase from '../../lib/supabaseClient'
-import './Signup.css'
+import '../Signup/Signup.css'
 
 export default function SignupCallback() {
   const navigate = useNavigate()
