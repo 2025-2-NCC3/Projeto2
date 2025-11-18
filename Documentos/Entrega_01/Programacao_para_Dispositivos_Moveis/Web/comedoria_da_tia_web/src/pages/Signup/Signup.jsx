@@ -137,10 +137,11 @@ export default function Signup() {
             role: 'user'
           },
           // ✅ REDIRECT para a tela de callback após confirmar o e-mail
-          emailRedirectTo:
-            typeof window !== 'undefined'
-              ? `${window.location.origin}/auth/signup-callback`
-              : undefined
+         emailRedirectTo:
+  typeof window !== 'undefined'
+    ? `${window.location.origin}/signup/callback`
+    : undefined
+
         }
       })
 
