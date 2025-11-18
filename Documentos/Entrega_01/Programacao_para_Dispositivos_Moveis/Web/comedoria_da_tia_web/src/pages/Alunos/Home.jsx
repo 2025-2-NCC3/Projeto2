@@ -112,8 +112,28 @@ export default function Home() {
     <div className="min-h-screen bg-gradient-to-br from-emerald-950 via-emerald-900 to-emerald-950 pb-32">
       <header className="sticky top-0 z-40 bg-emerald-950/95 backdrop-blur-md border-b border-emerald-800/30">
         <div className="container mx-auto px-4 py-4">
-          <h1 className="text-2xl font-bold text-emerald-400 mb-4">Comedoria da Tia</h1>
+          {/* Título + Ícone de Carrinho em cima da busca */}
+          <div className="flex items-center justify-between mb-3">
+            <h1 className="text-2xl font-bold text-emerald-400">
+              Comedoria da Tia
+            </h1>
 
+            {/* Botão de carrinho (topo) */}
+            <button
+              onClick={() => navigate('/app/alunos/carrinho')}
+              className="relative inline-flex items-center justify-center rounded-full p-2 bg-emerald-900/70 border border-emerald-700/60 hover:bg-emerald-800/80 transition-colors"
+              aria-label="Ir para o carrinho"
+            >
+              <ShoppingCart className="text-emerald-200" size={22} />
+              {itemCount > 0 && (
+                <span className="absolute -top-1 -right-1 min-w-[18px] h-[18px] px-1 rounded-full bg-red-500 text-[11px] font-bold text-white flex items-center justify-center">
+                  {itemCount}
+                </span>
+              )}
+            </button>
+          </div>
+
+          {/* Barra de busca */}
           <div className="relative">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-emerald-500" size={20} />
             <input

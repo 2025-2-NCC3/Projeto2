@@ -136,12 +136,8 @@ export default function Signup() {
             ra: ra.trim(), // ✅ ESSENCIAL PRO TRIGGER
             role: 'user'
           },
-          // ✅ REDIRECT para a tela de callback após confirmar o e-mail
-         emailRedirectTo:
-  typeof window !== 'undefined'
-    ? `${window.location.origin}/signup/callback`
-    : undefined
-
+          // ✅ REDIRECT ABSOLUTO para a tela de callback após confirmar o e-mail
+          emailRedirectTo: 'https://comedoria-da-tia-web.vercel.app/signup/callback'
         }
       })
 
