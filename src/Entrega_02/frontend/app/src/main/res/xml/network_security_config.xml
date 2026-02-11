@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<network-security-config>
+    <!-- Para DEV: libera HTTP em tudo. Em produção, restrinja por domínio. -->
+    <base-config cleartextTrafficPermitted="true" />
+    <!-- Exemplo de restrição por domínio (descomente e ajuste):
+    <domain-config cleartextTrafficPermitted="true">
+        <domain includeSubdomains="true">SEU-DOMINIO.supabase.co</domain>
+        <domain includeSubdomains="true">SEU-CDN-OU-STORAGE.com</domain>
+    </domain-config>
+    -->
+</network-security-config>

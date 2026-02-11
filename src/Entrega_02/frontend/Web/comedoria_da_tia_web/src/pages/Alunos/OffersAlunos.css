@@ -1,0 +1,253 @@
+/* Estilos específicos para promoções */
+.promotion-active {
+  border: 2px solid #FF6B6B;
+  background: linear-gradient(135deg, #fff5f5 0%, #ffffff 100%);
+  position: relative;
+  overflow: hidden;
+}
+
+.promotion-inactive {
+  border: 2px solid #FFD93D;
+  background: linear-gradient(135deg, #fff9e6 0%, #ffffff 100%);
+  opacity: 0.8;
+  position: relative;
+  overflow: hidden;
+}
+
+.promotion-expired {
+  border: 2px solid #CCCCCC;
+  background: linear-gradient(135deg, #f8f9fa 0%, #ffffff 100%);
+  opacity: 0.6;
+  position: relative;
+  overflow: hidden;
+}
+
+.promotion-badge {
+  position: absolute;
+  top: 10px;
+  left: 10px;
+  padding: 6px 12px;
+  border-radius: 20px;
+  font-size: 0.75rem;
+  font-weight: bold;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  z-index: 2;
+}
+
+.badge-active {
+  background: #FF6B6B;
+  color: white;
+}
+
+.badge-upcoming {
+  background: #FFD93D;
+  color: #333;
+}
+
+.badge-expired {
+  background: #CCCCCC;
+  color: #666;
+}
+
+.promotion-emoji {
+  font-size: 1rem;
+}
+
+.promotion-status {
+  font-size: 0.7rem;
+}
+
+.promotion-price-section {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin: 10px 0;
+  gap: 10px;
+}
+
+.promotion-price {
+  font-size: 1.5rem;
+  font-weight: bold;
+  color: #FF6B6B;
+}
+
+.promotion-expired .promotion-price {
+  color: #666;
+}
+
+.promotion-tag {
+  background: #4ECDC4;
+  color: white;
+  padding: 6px 10px;
+  border-radius: 12px;
+  font-size: 0.7rem;
+  font-weight: bold;
+  white-space: nowrap;
+}
+
+.promotion-period {
+  background: #f8f9fa;
+  padding: 12px;
+  border-radius: 8px;
+  margin: 10px 0;
+  border-left: 4px solid #4ECDC4;
+}
+
+.promotion-expired .promotion-period {
+  border-left-color: #CCCCCC;
+  background: #f0f0f0;
+}
+
+.period-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 4px 0;
+  font-size: 0.85rem;
+  color: #666;
+}
+
+.time-remaining {
+  margin-top: 8px;
+  padding: 6px 12px;
+  background: #FFE66D;
+  border-radius: 6px;
+  font-size: 0.8rem;
+  font-weight: bold;
+  text-align: center;
+  color: #333;
+}
+
+.time-expired {
+  background: #CCCCCC;
+  color: #666;
+}
+
+/* Ajustes para cards de promoção */
+.plist-card.promotion-active .plist-name {
+  color: #FF6B6B;
+  font-weight: bold;
+}
+
+.plist-card.promotion-inactive .plist-name {
+  color: #666;
+}
+
+.plist-card.promotion-expired .plist-name {
+  color: #999;
+  text-decoration: line-through;
+}
+
+/* Header especial para ofertas */
+.plist-user-header h1 {
+  color: #FF6B6B;
+  background: linear-gradient(45deg, #FF6B6B, #FFE66D);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+/* Estilos do botão do carrinho */
+.cart-button-container {
+  margin-top: 15px;
+  padding-top: 15px;
+  border-top: 1px solid #eee;
+}
+
+.cart-button {
+  width: 100%;
+  padding: 12px 16px;
+  border: none;
+  border-radius: 8px;
+  font-size: 0.9rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  background: #4ECDC4;
+  color: white;
+}
+
+.cart-button:hover:not(:disabled) {
+  background: #45b8b0;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(78, 205, 196, 0.3);
+}
+
+.cart-button:active:not(:disabled) {
+  transform: translateY(0);
+}
+
+.cart-button:disabled {
+  background: #CCCCCC;
+  color: #666;
+  cursor: not-allowed;
+  transform: none;
+  box-shadow: none;
+}
+
+.cart-button.added-to-cart {
+  background: #28a745;
+}
+
+.cart-button.added-to-cart:hover {
+  background: #218838;
+}
+
+.cart-button.expired-button {
+  background: #6c757d;
+}
+
+.expired-message {
+  margin-top: 8px;
+  padding: 8px 12px;
+  background: #fff3cd;
+  border: 1px solid #ffeaa7;
+  border-radius: 6px;
+  font-size: 0.8rem;
+  color: #856404;
+  text-align: center;
+}
+
+/* Footer navigation */
+.plist-user-footer {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background: white;
+  border-top: 1px solid #e0e0e0;
+  padding: 12px 16px;
+  display: flex;
+  justify-content: space-around;
+  z-index: 1000;
+}
+
+.btn-footer {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 20px;
+  border: none;
+  border-radius: 25px;
+  background: #4ECDC4;
+  color: white;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.btn-footer:hover {
+  background: #45b8b0;
+  transform: translateY(-2px);
+}
+
+/* Ajustes de layout para o conteúdo não ficar atrás do footer */
+.plist-user-page {
+  padding-bottom: 80px;
+}
